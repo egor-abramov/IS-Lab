@@ -1,0 +1,119 @@
+plugins {
+    id 'java'
+    id 'war'
+}
+
+group = 'core'
+version = '1.0-SNAPSHOT'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+configurations {
+    jdbc
+}
+
+dependencies {
+    compileOnly 'jakarta.platform:jakarta.jakartaee-api:10.0.0'
+
+    implementation('org.eclipse.persistence:org.eclipse.persistence.jpa:4.0.4') {
+        exclude group: 'org.eclipse.persistence', module: 'org.eclipse.persistence.moxy'
+        exclude group: 'org.eclipse.persistence', module: 'org.eclipse.persistence.json'
+        exclude group: 'jakarta.persistence'
+        exclude group: 'jakarta.json'
+        exclude group: 'jakarta.enterprise'
+        exclude group: 'jakarta.transaction'
+        exclude group: 'jakarta.validation'
+        exclude group: 'org.apache.ant'
+    }
+    implementation 'org.postgresql:postgresql:42.7.4'
+
+    jdbc 'org.postgresql:postgresql:42.7.4'
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+}
+
+def profile = findProperty('profile') ?: 'local'
+def profileConfig = file("config/${profile}.properties")
+def wildflyHome = file(findProperty('wildflyHome'))
+def windows = System.getProperty('os.name').startsWith('Windows')
+
+def wildflyScript = { String name ->
+    def script = "${wildflyHome}/bin/${name}"
+    return windows ? ["${script}.bat"] : ['sh', "${script}.sh"]
+}
+
+war {
+    archiveFileName = 'lab1.war'
+    from(profileConfig) {
+        into 'WEB-INF/classes'
+        rename { 'db.properties' }
+    }
+    doFirst {
+        if (!profileConfig.exists()) {
+            throw new GradleException("${profileConfig} not found, copy config/example.properties")
+        }
+    }
+}
+
+tasks.register('setupDb') {
+    group = 'lab1'
+    def classpath = configurations.jdbc
+    def scripts = [file('sql/schema.sql'), file('sql/functions.sql')]
+    doLast {
+        def db = new Properties()
+        profileConfig.withInputStream { db.load(it) }
+        def props = new Properties()
+        props.setProperty('user', db.getProperty('db.user'))
+        props.setProperty('password', db.getProperty('db.password'))
+
+        def loader = new URLClassLoader(classpath.files.collect { it.toURI().toURL() } as URL[])
+        def driver = loader.loadClass('org.postgresql.Driver').getDeclaredConstructor().newInstance()
+        def conn = driver.connect(db.getProperty('db.url'), props)
+        try {
+            scripts.each {
+                conn.createStatement().execute(it.getText('UTF-8'))
+                println "applied ${it.name}"
+            }
+        } finally {
+            conn.close()
+        }
+    }
+}
+
+tasks.register('deploy', Copy) {
+    group = 'lab1'
+    from tasks.named('war')
+    into "${wildflyHome}/standalone/deployments"
+    doFirst {
+        if (!wildflyHome.exists()) {
+            throw new GradleException("WildFly not found in ${wildflyHome}, set wildflyHome in gradle.properties")
+        }
+    }
+}
+
+tasks.register('up', Exec) {
+    group = 'lab1'
+    dependsOn 'setupDb', 'deploy'
+    commandLine wildflyScript('standalone')
+    environment 'NOPAUSE', 'true'
+    doFirst {
+        println 'Application: http://localhost:8080/lab1/'
+    }
+}
+
+tasks.register('stopServer', Exec) {
+    group = 'lab1'
+    commandLine wildflyScript('jboss-cli') + ['--connect', '--command=shutdown']
+    environment 'NOPAUSE', 'true'
+    ignoreExitValue = true
+}
