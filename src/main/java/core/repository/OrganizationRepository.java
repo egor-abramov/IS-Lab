@@ -52,6 +52,14 @@ public class OrganizationRepository extends BaseRepository {
         });
     }
 
+    private String containsPattern(String value) {
+        String escaped = value.toLowerCase()
+                .replace("!", "!!")
+                .replace("%", "!%")
+                .replace("_", "!_");
+        return "%" + escaped + "%";
+    }
+
     private String where(String field, String value) {
         if (field == null || value == null || value.isEmpty()) {
             return "";
@@ -59,7 +67,7 @@ public class OrganizationRepository extends BaseRepository {
         if (field.equals("type")) {
             return matchingTypes(value).isEmpty() ? " where 1 = 0" : " where o.type in :types";
         }
-        return " where lower(o." + field + ") like :value";
+        return " where lower(o." + field + ") like :value escape '!'";
     }
 
     private void setFilter(TypedQuery<?> q, String field, String value) {
@@ -72,7 +80,7 @@ public class OrganizationRepository extends BaseRepository {
                 q.setParameter("types", types);
             }
         } else {
-            q.setParameter("value", "%" + value.toLowerCase() + "%");
+            q.setParameter("value", containsPattern(value));
         }
     }
 

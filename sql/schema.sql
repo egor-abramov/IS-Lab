@@ -19,7 +19,7 @@ create table if not exists address (
 
 create table if not exists organization (
     id                  bigserial primary key check (id > 0),
-    name                text      not null check (name <> ''),
+    name                text      not null check (btrim(name) <> ''),
     coordinates_id      bigint    not null references coordinates (id),
     creation_date       timestamp not null default now(),
     official_address_id bigint references address (id),

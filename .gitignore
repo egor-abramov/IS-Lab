@@ -6,10 +6,7 @@ build/
 .kotlin
 
 ### IntelliJ IDEA ###
-.idea/modules.xml
-.idea/jarRepositories.xml
-.idea/compiler.xml
-.idea/libraries/
+.idea/
 *.iws
 *.iml
 *.ipr
@@ -48,3 +45,13 @@ config/*.properties
 
 ### WildFly downloaded by setupServer ###
 .wildfly/
+
+### LaTeX build artifacts ###
+report/*.aux
+report/*.log
+report/*.out
+report/*.xdv
+report/*.toc
+report/*.fls
+report/*.fdb_latexmk
+report/*.synctex.gz

@@ -10,6 +10,7 @@ import java.time.LocalDateTime;
 public class Organization {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Positive(message = "id must be greater than 0")
     private Long id;
 
     @NotBlank(message = "name must not be empty")
