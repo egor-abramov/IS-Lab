@@ -1,0 +1,58 @@
+@startuml model
+!pragma layout smetana
+skinparam dpi 180
+skinparam defaultFontName Arial
+skinparam shadowing false
+skinparam classAttributeIconSize 0
+hide empty methods
+set separator none
+
+package core.model {
+    class Organization <<Entity>> {
+        - id : Long
+        - name : String
+        - coordinates : Coordinates
+        - creationDate : LocalDateTime
+        - officialAddress : Address
+        - annualTurnover : Float
+        - employeesCount : int
+        - rating : Long
+        - fullName : String
+        - type : OrganizationType
+        - postalAddress : Address
+        ~ onCreate() : void
+    }
+
+    class Coordinates <<Entity>> {
+        - id : Long
+        - x : float
+        - y : int
+    }
+
+    class Address <<Entity>> {
+        - id : Long
+        - street : String
+        - town : Location
+    }
+
+    class Location <<Entity>> {
+        - id : Long
+        - x : long
+        - y : Float
+        - name : String
+    }
+
+    enum OrganizationType {
+        COMMERCIAL
+        TRUST
+        PRIVATE_LIMITED_COMPANY
+        OPEN_JOINT_STOCK_COMPANY
+    }
+}
+
+Organization "*" --> "1" Coordinates : coordinates
+Organization "*" --> "0..1" Address : officialAddress
+Organization "*" --> "1" Address : postalAddress
+Organization --> "0..1" OrganizationType : type
+Address "*" --> "0..1" Location : town
+@enduml

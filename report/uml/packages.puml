@@ -1,0 +1,32 @@
+@startuml packages
+!pragma layout smetana
+skinparam dpi 180
+skinparam defaultFontName Arial
+skinparam packageStyle folder
+skinparam shadowing false
+
+package "webapp (html/js)" as web
+package "core.handler" as handler
+package "core.handler.mapper" as mapper
+package "core.ws" as ws
+package "core.service" as service
+package "core.service.exception" as exception
+package "core.repository" as repository
+package "core.dto" as dto
+package "core.model" as model
+database "PostgreSQL" as db
+
+web ..> handler : HTTP /api
+web ..> ws : WebSocket /updates
+handler ..> service
+handler ..> dto
+mapper ..> exception
+service ..> exception
+service ..> repository
+service ..> dto
+service ..> ws
+service ..> model
+dto ..> model
+repository ..> model
+repository ..> db : JPA (EclipseLink)
+@enduml
