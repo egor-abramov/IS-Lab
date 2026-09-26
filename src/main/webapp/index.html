@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Lab 1</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<header>
+    <nav>
+        <button data-section="organizations" class="active" onclick="showSection('organizations')">Организации</button>
+        <button data-section="coordinates" onclick="showSection('coordinates')">Координаты</button>
+        <button data-section="addresses" onclick="showSection('addresses')">Адреса</button>
+        <button data-section="locations" onclick="showSection('locations')">Локации</button>
+        <button data-section="special" onclick="showSection('special')">Спец. операции</button>
+    </nav>
+</header>
+
+<main>
+    <p id="message" class="error"></p>
+
+    <section id="organizations">
+        <div class="section-header">
+            <div class="toolbar">
+                <input id="find-id" type="number" min="1" placeholder="id">
+                <button onclick="viewOrg(document.getElementById('find-id').value)">Показать</button>
+                <button class="primary" onclick="openOrgDialog(null)">+ Добавить</button>
+            </div>
+        </div>
+        <div class="toolbar">
+            <label>Фильтр
+                <select id="filter-field">
+                    <option value="name">name</option>
+                    <option value="fullName">fullName</option>
+                    <option value="type">type</option>
+                </select>
+            </label>
+            <input id="filter-value" placeholder="часть значения">
+            <label>Сортировка
+                <select id="sort-field">
+                    <option>id</option>
+                    <option>name</option>
+                    <option>creationDate</option>
+                    <option>annualTurnover</option>
+                    <option>employeesCount</option>
+                    <option>rating</option>
+                    <option>fullName</option>
+                    <option>type</option>
+                </select>
+            </label>
+            <select id="sort-dir">
+                <option value="asc">по возрастанию</option>
+                <option value="desc">по убыванию</option>
+            </select>
+            <button class="primary" onclick="applyFilter()">Применить</button>
+        </div>
+        <div class="table-wrap">
+            <table>
+                <thead>
+                <tr>
+                    <th>id</th><th>name</th><th>coordinates.x</th><th>coordinates.y</th><th>creationDate</th>
+                    <th>officialAddress</th><th>annualTurnover</th><th>employeesCount</th><th>rating</th>
+                    <th>fullName</th><th>type</th><th>postalAddress</th><th></th>
+                </tr>
+                </thead>
+                <tbody id="org-rows"></tbody>
+            </table>
+        </div>
+        <div class="pager">
+            <button onclick="prevPage()">&larr; Назад</button>
+            <span id="page-info"></span>
+            <button onclick="nextPage()">Вперёд &rarr;</button>
+        </div>
+    </section>
+
+    <section id="coordinates" hidden>
+        <div class="toolbar">
+            <label>x <input id="coord-x" type="number" step="any"></label>
+            <label>y <input id="coord-y" type="number" step="1"></label>
+            <button class="primary" onclick="createCoordinates()">+ Добавить</button>
+        </div>
+        <table>
+            <thead><tr><th>id</th><th>x</th><th>y</th><th></th></tr></thead>
+            <tbody id="coord-rows"></tbody>
+        </table>
+    </section>
+
+    <section id="addresses" hidden>
+        <div class="toolbar">
+            <label>Улица <input id="addr-street"></label>
+            <label>Город <select id="addr-town"></select></label>
+            <button class="primary" onclick="createAddress()">+ Добавить</button>
+        </div>
+        <table>
+            <thead><tr><th>id</th><th>street</th><th>town</th><th></th></tr></thead>
+            <tbody id="addr-rows"></tbody>
+        </table>
+    </section>
+
+    <section id="locations" hidden>
+        <div class="toolbar">
+            <label>x <input id="loc-x" type="number" step="1"></label>
+            <label>y <input id="loc-y" type="number" step="any"></label>
+            <label>Название <input id="loc-name"></label>
+            <button class="primary" onclick="createLocation()">+ Добавить</button>
+        </div>
+        <table>
+            <thead><tr><th>id</th><th>x</th><th>y</th><th>name</th><th></th></tr></thead>
+            <tbody id="loc-rows"></tbody>
+        </table>
+    </section>
+
+    <section id="special" hidden>
+        <div class="op">
+            <span>Количество организаций, у которых fullName больше</span>
+            <input id="sp-fullname" placeholder="строка">
+            <button class="primary" onclick="countFullNameGreater()">Выполнить</button>
+        </div>
+        <div class="op">
+            <span>Организации, у которых name содержит</span>
+            <input id="sp-name" placeholder="подстрока">
+            <button class="primary" onclick="nameContains()">Выполнить</button>
+        </div>
+        <div class="op">
+            <span>Уникальные значения rating</span>
+            <button class="primary" onclick="uniqueRatings()">Выполнить</button>
+        </div>
+        <div class="op">
+            <span>5 организаций с максимальным годовым оборотом</span>
+            <button class="primary" onclick="top5()">Выполнить</button>
+        </div>
+        <div class="op">
+            <span>Среднее число сотрудников у 10 крупнейших по обороту</span>
+            <button class="primary" onclick="avgEmployees()">Выполнить</button>
+        </div>
+        <h3>Результат</h3>
+        <div id="sp-result"></div>
+    </section>
+</main>
+
+<dialog id="org-dialog">
+    <h3 id="org-dialog-title"></h3>
+    <div class="form">
+        <label>name <input id="f-name"></label>
+        <label>coordinates <select id="f-coordinates"></select></label>
+        <label>officialAddress <select id="f-official"></select></label>
+        <label>annualTurnover <input id="f-turnover" type="number" step="any"></label>
+        <label>employeesCount <input id="f-employees" type="number" step="1"></label>
+        <label>rating <input id="f-rating" type="number" step="1"></label>
+        <label>fullName <input id="f-fullname"></label>
+        <label>type
+            <select id="f-type">
+                <option value=""></option>
+                <option>COMMERCIAL</option>
+                <option>TRUST</option>
+                <option>PRIVATE_LIMITED_COMPANY</option>
+                <option>OPEN_JOINT_STOCK_COMPANY</option>
+            </select>
+        </label>
+        <label>postalAddress <select id="f-postal"></select></label>
+    </div>
+    <ul id="org-errors" class="error"></ul>
+    <div class="actions">
+        <button onclick="document.getElementById('org-dialog').close()">Отмена</button>
+        <button class="primary" onclick="saveOrg()">Сохранить</button>
+    </div>
+</dialog>
+
+<dialog id="replace-dialog">
+    <h3 id="replace-title"></h3>
+    <p id="replace-reason"></p>
+    <div class="form">
+        <label>Заменить на <select id="replace-select"></select></label>
+    </div>
+    <ul id="replace-errors" class="error"></ul>
+    <div class="actions">
+        <button onclick="document.getElementById('replace-dialog').close()">Отмена</button>
+        <button class="danger" onclick="confirmReplace()">Перепривязать и удалить</button>
+    </div>
+</dialog>
+
+<dialog id="view-dialog">
+    <table id="view-table" class="details"></table>
+    <div class="actions">
+        <button onclick="document.getElementById('view-dialog').close()">Закрыть</button>
+        <button class="primary" onclick="editViewed()">Изменить</button>
+    </div>
+</dialog>
+
+<script src="js/api.js"></script>
+<script src="js/nested.js"></script>
+<script src="js/organizations.js"></script>
+<script src="js/special.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>
