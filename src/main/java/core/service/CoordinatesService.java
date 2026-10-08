@@ -17,7 +17,7 @@ public class CoordinatesService {
     @Inject
     CoordinatesRepository repository;
     @Inject
-    EntityValidator validator;
+    DataValidator validator;
     @Inject
     UpdateNotifier notifier;
 

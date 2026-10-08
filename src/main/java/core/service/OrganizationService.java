@@ -31,7 +31,7 @@ public class OrganizationService {
     @Inject
     AddressRepository addressRepository;
     @Inject
-    EntityValidator validator;
+    DataValidator validator;
     @Inject
     UpdateNotifier notifier;
 

@@ -51,7 +51,7 @@ package core.service {
         + delete(id, replacementId) : void
     }
     class SpecialOpsService
-    class EntityValidator {
+    class DataValidator {
         + check(Object) : void
     }
 }
@@ -109,10 +109,10 @@ AppException <|-- Exceptions
 
 OrganizationService --> OrganizationRepository
 OrganizationService --> NestedRepository
-OrganizationService --> EntityValidator
+OrganizationService --> DataValidator
 OrganizationService --> UpdateNotifier
 NestedService --> NestedRepository
-NestedService --> EntityValidator
+NestedService --> DataValidator
 NestedService --> UpdateNotifier
 SpecialOpsService --> SpecialOpsRepository
 OrganizationService ..> Exceptions

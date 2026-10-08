@@ -17,7 +17,7 @@ public class LocationService {
     @Inject
     LocationRepository repository;
     @Inject
-    EntityValidator validator;
+    DataValidator validator;
     @Inject
     UpdateNotifier notifier;
 

@@ -21,7 +21,7 @@ public class AddressService {
     @Inject
     LocationRepository locationRepository;
     @Inject
-    EntityValidator validator;
+    DataValidator validator;
     @Inject
     UpdateNotifier notifier;
 

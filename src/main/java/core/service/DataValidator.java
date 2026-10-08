@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Set;
 
 @ApplicationScoped
-public class EntityValidator {
+public class DataValidator {
     @Inject
     Validator validator;
 
@@ -18,9 +18,9 @@ public class EntityValidator {
         if (object == null) {
             throw new InvalidDataException("request body is empty");
         }
-        Set<ConstraintViolation<Object>> violations = validator.validate(object);
-        if (!violations.isEmpty()) {
-            List<String> errors = violations.stream()
+        Set<ConstraintViolation<Object>> errs = validator.validate(object);
+        if (!errs.isEmpty()) {
+            List<String> errors = errs.stream()
                     .map(ConstraintViolation::getMessage)
                     .sorted()
                     .toList();
