@@ -65,19 +65,18 @@ package core.service.exception {
 
 package core.repository {
     abstract class BaseRepository {
-        # inTransaction(work) : T
-        # read(work) : T
+        # em : EntityManager
+        + save(entity) : T
+        # delete(type, id) : boolean
     }
     class "Coordinates/Address/LocationRepository" as NestedRepository {
         + findAll() : List
         + findById(id)
-        + save(entity)
         + countUsages(id) : long
         + deleteWithReplace(id, replacementId) : void
     }
     class OrganizationRepository {
         + findById(id) : Organization
-        + save(Organization) : Organization
         + delete(id) : boolean
         + findPage(...) : List<Organization>
         + count(filterField, filterValue) : long
@@ -88,9 +87,6 @@ package core.repository {
         + uniqueRatings() : List<Long>
         + top5ByTurnover() : List<Organization>
         + avgEmployeesTop10() : double
-    }
-    class EmfProducer {
-        + getEmf() : EntityManagerFactory
     }
 }
 
@@ -122,5 +118,4 @@ UpdateNotifier ..> UpdatesEndpoint
 BaseRepository <|-- OrganizationRepository
 BaseRepository <|-- NestedRepository
 BaseRepository <|-- SpecialOpsRepository
-BaseRepository ..> EmfProducer : EntityManagerFactory
 @enduml

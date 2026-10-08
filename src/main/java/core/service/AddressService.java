@@ -13,8 +13,10 @@ import core.service.exception.NotFoundException;
 import core.ws.UpdateNotifier;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import jakarta.transaction.Transactional;
 
 @ApplicationScoped
+@Transactional
 public class AddressService {
     @Inject
     AddressRepository repository;

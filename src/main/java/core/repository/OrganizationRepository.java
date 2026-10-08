@@ -3,7 +3,11 @@ package core.repository;
 import core.model.Organization;
 import core.model.OrganizationType;
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.persistence.TypedQuery;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Order;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
 
 import java.util.Arrays;
 import java.util.List;
@@ -12,81 +16,53 @@ import java.util.List;
 public class OrganizationRepository extends BaseRepository {
 
     public Organization findById(long id) {
-        return read(em -> em.find(Organization.class, id));
-    }
-
-    public Organization save(Organization organization) {
-        return inTransaction(em -> em.merge(organization));
+        return em.find(Organization.class, id);
     }
 
     public boolean delete(long id) {
-        return inTransaction(em -> {
-            Organization o = em.find(Organization.class, id);
-            if (o == null) {
-                return false;
-            }
-            em.remove(o);
-            return true;
-        });
+        return delete(Organization.class, id);
     }
 
     public List<Organization> findPage(String filterField, String filterValue,
                                        String sortField, boolean asc, int page, int size) {
-        return read(em -> {
-            String jpql = "select o from Organization o" + where(filterField, filterValue)
-                    + " order by o." + sortField + (asc ? " asc" : " desc") + ", o.id";
-            TypedQuery<Organization> q = em.createQuery(jpql, Organization.class);
-            setFilter(q, filterField, filterValue);
-            q.setFirstResult(page * size);
-            q.setMaxResults(size);
-            return q.getResultList();
-        });
+        CriteriaBuilder cb = em.getCriteriaBuilder();
+        CriteriaQuery<Organization> query = cb.createQuery(Organization.class);
+        Root<Organization> o = query.from(Organization.class);
+
+        Order order = asc ? cb.asc(o.get(sortField)) : cb.desc(o.get(sortField));
+        query.where(filter(cb, o, filterField, filterValue))
+                .orderBy(order, cb.asc(o.get("id")));
+
+        return em.createQuery(query)
+                .setFirstResult(page * size)
+                .setMaxResults(size)
+                .getResultList();
     }
 
     public long count(String filterField, String filterValue) {
-        return read(em -> {
-            TypedQuery<Long> q = em.createQuery(
-                    "select count(o) from Organization o" + where(filterField, filterValue), Long.class);
-            setFilter(q, filterField, filterValue);
-            return q.getSingleResult();
-        });
+        CriteriaBuilder cb = em.getCriteriaBuilder();
+        CriteriaQuery<Long> query = cb.createQuery(Long.class);
+        Root<Organization> o = query.from(Organization.class);
+
+        query.select(cb.count(o))
+                .where(filter(cb, o, filterField, filterValue));
+
+        return em.createQuery(query).getSingleResult();
     }
 
-    private String containsPattern(String value) {
-        String escaped = value.toLowerCase()
-                .replace("!", "!!")
-                .replace("%", "!%")
-                .replace("_", "!_");
-        return "%" + escaped + "%";
-    }
-
-    private String where(String field, String value) {
+    private Predicate filter(CriteriaBuilder cb, Root<Organization> o, String field, String value) {
         if (field == null || value == null || value.isEmpty()) {
-            return "";
+            return cb.conjunction();
         }
-        if (field.equals("type")) {
-            return matchingTypes(value).isEmpty() ? " where 1 = 0" : " where o.type in :types";
-        }
-        return " where lower(o." + field + ") like :value escape '!'";
-    }
+        String substring = value.toLowerCase();
 
-    private void setFilter(TypedQuery<?> q, String field, String value) {
-        if (field == null || value == null || value.isEmpty()) {
-            return;
-        }
         if (field.equals("type")) {
-            List<OrganizationType> types = matchingTypes(value);
-            if (!types.isEmpty()) {
-                q.setParameter("types", types);
-            }
-        } else {
-            q.setParameter("value", containsPattern(value));
+            List<OrganizationType> types = Arrays.stream(OrganizationType.values())
+                    .filter(t -> t.name().toLowerCase().contains(substring))
+                    .toList();
+            return types.isEmpty() ? cb.disjunction() : o.get("type").in(types);
         }
-    }
 
-    private List<OrganizationType> matchingTypes(String value) {
-        return Arrays.stream(OrganizationType.values())
-                .filter(t -> t.name().toLowerCase().contains(value.toLowerCase()))
-                .toList();
+        return cb.greaterThan(cb.locate(cb.lower(o.<String>get(field)), substring), 0);
     }
 }

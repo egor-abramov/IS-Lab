@@ -1,5 +1,6 @@
 package core.repository;
 
+import core.model.Address;
 import core.model.Location;
 import jakarta.enterprise.context.ApplicationScoped;
 
@@ -9,34 +10,21 @@ import java.util.List;
 public class LocationRepository extends BaseRepository {
 
     public List<Location> findAll() {
-        return read(em -> em.createQuery("select l from Location l order by l.id", Location.class)
-                .getResultList());
+        return findAll(Location.class);
     }
 
     public Location findById(long id) {
-        return read(em -> em.find(Location.class, id));
-    }
-
-    public Location save(Location l) {
-        return inTransaction(em -> em.merge(l));
+        return em.find(Location.class, id);
     }
 
     public long countUsages(long id) {
-        return read(em -> em.createQuery("select count(a) from Address a where a.town.id = :id", Long.class)
-                .setParameter("id", id)
-                .getSingleResult());
+        return countReferences(Address.class, id, "town");
     }
 
     public void deleteWithReplace(long id, Long replacementId) {
-        inTransaction(em -> {
-            if (replacementId != null) {
-                em.createQuery("update Address a set a.town = :r where a.town.id = :id")
-                        .setParameter("r", em.find(Location.class, replacementId))
-                        .setParameter("id", id)
-                        .executeUpdate();
-            }
-            em.remove(em.find(Location.class, id));
-            return null;
-        });
+        if (replacementId != null) {
+            replaceReferences(Address.class, "town", id, findById(replacementId));
+        }
+        delete(Location.class, id);
     }
 }

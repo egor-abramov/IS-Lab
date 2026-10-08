@@ -14,11 +14,13 @@ import core.service.exception.NotFoundException;
 import core.ws.UpdateNotifier;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import jakarta.transaction.Transactional;
 
 import java.util.List;
 import java.util.Set;
 
 @ApplicationScoped
+@Transactional
 public class OrganizationService {
     private static final Set<String> FILTER_FIELDS = Set.of("name", "fullName", "type");
     private static final Set<String> SORT_FIELDS = Set.of("id", "name", "creationDate", "annualTurnover",

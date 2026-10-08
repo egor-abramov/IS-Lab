@@ -1,3 +1,5 @@
+import groovy.xml.XmlUtil
+
 plugins {
     id 'java'
     id 'war'
@@ -17,7 +19,9 @@ repositories {
 }
 
 configurations {
-    jdbc
+    jdbc {
+        transitive = false
+    }
 }
 
 dependencies {
@@ -33,8 +37,6 @@ dependencies {
         exclude group: 'jakarta.validation'
         exclude group: 'org.apache.ant'
     }
-    implementation 'org.postgresql:postgresql:42.7.4'
-
     jdbc 'org.postgresql:postgresql:42.7.4'
 }
 
@@ -52,11 +54,25 @@ def wildflyScript = { String name ->
     return windows ? ["${script}.bat"] : ['sh', "${script}.sh"]
 }
 
+def loadDbConfig = {
+    def db = new Properties()
+    if (profileConfig.exists()) {
+        profileConfig.withInputStream { db.load(it) }
+    }
+    return db
+}
+
 war {
     archiveFileName = 'lab1.war'
-    from(profileConfig) {
-        into 'WEB-INF/classes'
-        rename { 'db.properties' }
+    def db = loadDbConfig()
+    inputs.properties(db)
+    from('config/lab1-ds.xml') {
+        into 'WEB-INF'
+        expand(
+                url: XmlUtil.escapeXml(db.getProperty('db.url', '')),
+                user: XmlUtil.escapeXml(db.getProperty('db.user', '')),
+                password: XmlUtil.escapeXml(db.getProperty('db.password', ''))
+        )
     }
     doFirst {
         if (!profileConfig.exists()) {
@@ -70,8 +86,7 @@ tasks.register('setupDb') {
     def classpath = configurations.jdbc
     def scripts = [file('sql/schema.sql'), file('sql/functions.sql')]
     doLast {
-        def db = new Properties()
-        profileConfig.withInputStream { db.load(it) }
+        def db = loadDbConfig()
         def props = new Properties()
         props.setProperty('user', db.getProperty('db.user'))
         props.setProperty('password', db.getProperty('db.password'))
@@ -90,9 +105,19 @@ tasks.register('setupDb') {
     }
 }
 
+tasks.register('jdbcDriver', Copy) {
+    group = 'lab1'
+    from configurations.jdbc
+    into layout.buildDirectory.dir('libs')
+    rename { 'postgresql.jar' }
+}
+
 tasks.register('deploy', Copy) {
     group = 'lab1'
     from tasks.named('war')
+    from(configurations.jdbc) {
+        rename { 'postgresql.jar' }
+    }
     into "${wildflyHome}/standalone/deployments"
     doFirst {
         if (!wildflyHome.exists()) {

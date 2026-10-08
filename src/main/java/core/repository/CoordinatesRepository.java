@@ -1,6 +1,7 @@
 package core.repository;
 
 import core.model.Coordinates;
+import core.model.Organization;
 import jakarta.enterprise.context.ApplicationScoped;
 
 import java.util.List;
@@ -9,35 +10,21 @@ import java.util.List;
 public class CoordinatesRepository extends BaseRepository {
 
     public List<Coordinates> findAll() {
-        return read(em -> em.createQuery("select c from Coordinates c order by c.id", Coordinates.class)
-                .getResultList());
+        return findAll(Coordinates.class);
     }
 
     public Coordinates findById(long id) {
-        return read(em -> em.find(Coordinates.class, id));
-    }
-
-    public Coordinates save(Coordinates c) {
-        return inTransaction(em -> em.merge(c));
+        return em.find(Coordinates.class, id);
     }
 
     public long countUsages(long id) {
-        return read(em -> em.createQuery(
-                        "select count(o) from Organization o where o.coordinates.id = :id", Long.class)
-                .setParameter("id", id)
-                .getSingleResult());
+        return countReferences(Organization.class, id, "coordinates");
     }
 
     public void deleteWithReplace(long id, Long replacementId) {
-        inTransaction(em -> {
-            if (replacementId != null) {
-                em.createQuery("update Organization o set o.coordinates = :r where o.coordinates.id = :id")
-                        .setParameter("r", em.find(Coordinates.class, replacementId))
-                        .setParameter("id", id)
-                        .executeUpdate();
-            }
-            em.remove(em.find(Coordinates.class, id));
-            return null;
-        });
+        if (replacementId != null) {
+            replaceReferences(Organization.class, "coordinates", id, findById(replacementId));
+        }
+        delete(Coordinates.class, id);
     }
 }
