@@ -79,12 +79,16 @@ public class OrganizationService {
     }
 
     private OrganizationDto save(Organization o, OrganizationRequest r) {
+        if (r == null) {
+            throw new InvalidDataException("пустое тело запроса");
+        }
+
         List<String> errors = new ArrayList<>();
-        validator.check(r, errors);
 
         o.setCoordinates(findCoordinates(r.coordinatesId(), errors));
         o.setOfficialAddress(findAddress(r.officialAddressId(), errors));
         o.setPostalAddress(findAddress(r.postalAddressId(), errors));
+        validator.check(r, errors);
 
         o.setName(r.name().trim());
         o.setAnnualTurnover(r.annualTurnover());
