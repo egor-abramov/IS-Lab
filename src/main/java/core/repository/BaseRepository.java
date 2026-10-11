@@ -1,7 +1,9 @@
 package core.repository;
 
+import core.service.exception.DataConflictException;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.PersistenceException;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.CriteriaUpdate;
@@ -25,7 +27,7 @@ public abstract class BaseRepository {
 
     public <T> T save(T entity) {
         T saved = em.merge(entity);
-        em.flush();
+        flush();
         return saved;
     }
 
@@ -35,7 +37,7 @@ public abstract class BaseRepository {
             return false;
         }
         em.remove(entity);
-        em.flush();
+        flush();
         return true;
     }
 
@@ -57,6 +59,18 @@ public abstract class BaseRepository {
         Root<T> root = update.from(type);
         update.set(root.get(reference), replacement)
                 .where(cb.equal(root.get(reference).get("id"), oldId));
-        em.createQuery(update).executeUpdate();
+        try {
+            em.createQuery(update).executeUpdate();
+        } catch (PersistenceException e) {
+            throw new DataConflictException("data violates database constraints");
+        }
+    }
+
+    private void flush() {
+        try {
+            em.flush();
+        } catch (PersistenceException e) {
+            throw new DataConflictException("data violates database constraints");
+        }
     }
 }

@@ -252,7 +252,7 @@ select root from Address root order by root.id asc
 ```java
 public <T> T save(T entity) {
     T saved = em.merge(entity);
-    em.flush();
+    flush();
     return saved;
 }
 ```
@@ -260,7 +260,7 @@ public <T> T save(T entity) {
 - `merge` делает insert (если `id == null`) или update и возвращает managed-объект.
 - `flush` сразу отправляет SQL в БД, не дожидаясь коммита. Это нужно по двум причинам:
   1. `id` генерирует база (`GenerationType.IDENTITY`), и он появится у объекта только после реального `insert`. Сервис превращает объект в DTO еще до коммита, и без `flush` в ответе был бы `"id": null`.
-  2. Если БД отклонит данные (нарушение ограничения), ошибка вылетит здесь как обычное `PersistenceException`, и ее поймает `PersistenceExceptionMapper`. Без `flush` она вылетела бы при коммите внутри интерцептора уже завернутой в `TransactionalException`, и клиент получил бы 500.
+  2. Если БД отклонит данные (нарушение ограничения), ошибка вылетит здесь как `PersistenceException`. `flush()` в `BaseRepository` ловит ее и, если это нарушение ограничения (SQLState `23xxx`), бросает `DataConflictException`, которое мапится в 409. Без `flush` она вылетела бы при коммите внутри интерцептора уже завернутой в `TransactionalException`, и клиент получил бы 500.
 
 Метод `public`, поэтому сервисы вызывают `repository.save(c)` у любого репозитория.
 
@@ -273,7 +273,7 @@ protected boolean delete(Class<?> type, long id) {
         return false;
     }
     em.remove(entity);
-    em.flush();
+    flush();
     return true;
 }
 ```
