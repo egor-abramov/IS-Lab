@@ -15,6 +15,6 @@ public class PersistenceExceptionMapper implements ExceptionMapper<PersistenceEx
     @Override
     public Response toResponse(PersistenceException e) {
         LOG.log(Level.WARNING, "database error", e);
-        return ErrorResponses.of(Response.Status.INTERNAL_SERVER_ERROR, "internal error");
+        return ErrorResponses.of(Response.Status.INTERNAL_SERVER_ERROR, "внутренняя ошибка сервера");
     }
 }

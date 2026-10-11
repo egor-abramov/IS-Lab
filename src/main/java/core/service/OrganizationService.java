@@ -16,6 +16,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -40,16 +41,16 @@ public class OrganizationService {
     public OrganizationPageDto list(int page, int size, String filterField, String filterValue,
                                     String sortField, String sortDir) {
         if (page < 0 || size < 1 || size > 100) {
-            throw new InvalidDataException("page must be >= 0 and size must be between 1 and 100");
+            throw new InvalidDataException("номер страницы должен быть >= 0, а размер от 1 до 100");
         }
         if (filterField != null && !FILTER_FIELDS.contains(filterField)) {
-            throw new InvalidDataException("filtering is allowed only by " + FILTER_FIELDS);
+            throw new InvalidDataException("фильтрация возможна только по полям " + FILTER_FIELDS);
         }
         if (sortField == null || sortField.isEmpty()) {
             sortField = "id";
         }
         if (!SORT_FIELDS.contains(sortField)) {
-            throw new InvalidDataException("sorting is allowed only by " + SORT_FIELDS);
+            throw new InvalidDataException("сортировка возможна только по полям " + SORT_FIELDS);
         }
         boolean asc = !"desc".equalsIgnoreCase(sortDir);
         List<OrganizationDto> items = repository.findPage(filterField, filterValue, sortField, asc, page, size)
@@ -72,14 +73,26 @@ public class OrganizationService {
 
     public void delete(long id) {
         if (!repository.delete(id)) {
-            throw new NotFoundException("Organization", id);
+            throw new NotFoundException("организация", id);
         }
         notifier.broadcast("organizations");
     }
 
-    private OrganizationDto save(Organization o, OrganizationRequest request) {
-        validator.check(request);
-        fill(o, request);
+    private OrganizationDto save(Organization o, OrganizationRequest r) {
+        List<String> errors = new ArrayList<>();
+        validator.check(r, errors);
+
+        o.setCoordinates(findCoordinates(r.coordinatesId(), errors));
+        o.setOfficialAddress(findAddress(r.officialAddressId(), errors));
+        o.setPostalAddress(findAddress(r.postalAddressId(), errors));
+
+        o.setName(r.name().trim());
+        o.setAnnualTurnover(r.annualTurnover());
+        o.setEmployeesCount(r.employeesCount());
+        o.setRating(r.rating());
+        o.setFullName(r.fullName() == null || r.fullName().isBlank() ? null : r.fullName().trim());
+        o.setType(r.type());
+
         validator.check(o);
         Organization saved = repository.save(o);
         notifier.broadcast("organizations");
@@ -89,35 +102,29 @@ public class OrganizationService {
     private Organization find(long id) {
         Organization o = repository.findById(id);
         if (o == null) {
-            throw new NotFoundException("Organization", id);
+            throw new NotFoundException("организация", id);
         }
         return o;
     }
 
-    private void fill(Organization o, OrganizationRequest r) {
-        o.setName(r.name() == null ? null : r.name().trim());
-        o.setCoordinates(r.coordinatesId() == null ? null : findCoordinates(r.coordinatesId()));
-        o.setOfficialAddress(r.officialAddressId() == null ? null : findAddress(r.officialAddressId()));
-        o.setPostalAddress(r.postalAddressId() == null ? null : findAddress(r.postalAddressId()));
-        o.setAnnualTurnover(r.annualTurnover());
-        o.setEmployeesCount(r.employeesCount());
-        o.setRating(r.rating());
-        o.setFullName(r.fullName() == null || r.fullName().isBlank() ? null : r.fullName().trim());
-        o.setType(r.type());
-    }
-
-    private Coordinates findCoordinates(long id) {
+    private Coordinates findCoordinates(Long id, List<String> errors) {
+        if (id == null) {
+            return null;
+        }
         Coordinates c = coordinatesRepository.findById(id);
         if (c == null) {
-            throw new InvalidDataException(NotFoundException.message("Coordinates", id));
+            errors.add(NotFoundException.message("координаты", id));
         }
         return c;
     }
 
-    private Address findAddress(long id) {
+    private Address findAddress(Long id, List<String> errors) {
+        if (id == null) {
+            return null;
+        }
         Address a = addressRepository.findById(id);
         if (a == null) {
-            throw new InvalidDataException(NotFoundException.message("Address", id));
+            errors.add(NotFoundException.message("адрес", id));
         }
         return a;
     }

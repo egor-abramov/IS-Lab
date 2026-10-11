@@ -3,7 +3,7 @@ create or replace function count_full_name_greater(p_full_name text) returns big
 $$ language sql stable;
 
 create or replace function find_name_contains(p_sub text) returns setof organization as $$
-    select * from organization where strpos(name, p_sub) > 0 order by id;
+    select * from organization where strpos(LOWER(name), LOWER(p_sub)) > 0 order by id;
 $$ language sql stable;
 
 create or replace function unique_ratings() returns setof bigint as $$

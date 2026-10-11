@@ -13,11 +13,11 @@ public class Location {
     @Column(nullable = false)
     private long x;
 
-    @NotNull(message = "location y is required")
+    @NotNull(message = "y обязательное поле")
     @Column(nullable = false)
     private Float y;
 
-    @NotNull(message = "location name is required")
+    @NotNull(message = "name обязательное поле")
     @Column(nullable = false)
     private String name;
 

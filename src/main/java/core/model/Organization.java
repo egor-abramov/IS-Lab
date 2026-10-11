@@ -10,14 +10,14 @@ import java.time.LocalDateTime;
 public class Organization {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Positive(message = "id must be greater than 0")
+    @Positive(message = "id должно быть больше 0")
     private Long id;
 
-    @NotBlank(message = "name must not be empty")
+    @NotBlank(message = "name не может быть пустым")
     @Column(nullable = false)
     private String name;
 
-    @NotNull(message = "coordinates are required")
+    @NotNull(message = "coordinates обязательное поле")
     @ManyToOne(optional = false)
     @JoinColumn(name = "coordinates_id", nullable = false)
     private Coordinates coordinates;
@@ -29,15 +29,15 @@ public class Organization {
     @JoinColumn(name = "official_address_id")
     private Address officialAddress;
 
-    @Positive(message = "annual turnover must be greater than 0")
+    @Positive(message = "annualTurnover должно быть больше 0")
     @Column(name = "annual_turnover")
     private Float annualTurnover;
 
-    @Positive(message = "employees count must be greater than 0")
+    @Positive(message = "employeesCount должно быть больше 0")
     @Column(name = "employees_count", nullable = false)
     private int employeesCount;
 
-    @Positive(message = "rating must be greater than 0")
+    @Positive(message = "rating должно быть больше 0")
     private Long rating;
 
     @Column(name = "full_name")
@@ -46,7 +46,7 @@ public class Organization {
     @Enumerated(EnumType.STRING)
     private OrganizationType type;
 
-    @NotNull(message = "postal address is required")
+    @NotNull(message = "postalAddress обязательное поле")
     @ManyToOne(optional = false)
     @JoinColumn(name = "postal_address_id", nullable = false)
     private Address postalAddress;

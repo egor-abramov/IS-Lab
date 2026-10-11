@@ -41,16 +41,16 @@ public class LocationService {
 
     public void delete(long id, Long replacementId) {
         if (repository.findById(id) == null) {
-            throw new NotFoundException("Location", id);
+            throw new NotFoundException("город", id);
         }
         long usages = repository.countUsages(id);
         if (usages > 0) {
             if (replacementId == null) {
-                throw new EntityInUseException("location is used by " + usages
-                        + " addresses, choose a replacement location");
+                throw new EntityInUseException("город используется адресами (" + usages
+                        + " шт.), выберите город для замены");
             }
             if (replacementId == id || repository.findById(replacementId) == null) {
-                throw new InvalidDataException("invalid replacement location");
+                throw new InvalidDataException("некорректный город для замены");
             }
         }
         repository.deleteWithReplace(id, usages > 0 ? replacementId : null);

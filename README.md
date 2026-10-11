@@ -17,12 +17,14 @@ cp config/example.properties config/local.properties
 ./gradlew up          # таблицы в БД, деплой, запуск WildFly
 ./gradlew deploy      # передеплоить после изменений
 ./gradlew stopServer  # остановить сервер
+./gradlew seedDb      # добавить 10 тестовых организаций
 ```
 
 ## helios
 
 ```
 psql -h pg -d studs -f sql/schema.sql -f sql/functions.sql
+psql -h pg -d studs -f sql/seed.sql   # тестовые данные, по желанию
 ./gradlew war jdbcDriver -Pprofile=helios
 ```
 

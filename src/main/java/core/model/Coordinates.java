@@ -10,7 +10,7 @@ public class Coordinates {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @DecimalMin(value = "-577", inclusive = false, message = "x must be greater than -577")
+    @DecimalMin(value = "-577", inclusive = false, message = "x должно быть больше -577")
     @Column(nullable = false)
     private float x;
 

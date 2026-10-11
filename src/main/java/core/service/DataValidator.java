@@ -6,8 +6,8 @@ import jakarta.inject.Inject;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validator;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 @ApplicationScoped
 public class DataValidator {
@@ -15,15 +15,18 @@ public class DataValidator {
     Validator validator;
 
     public void check(Object object) {
+        check(object, new ArrayList<>());
+    }
+
+    public void check(Object object, List<String> errors) {
         if (object == null) {
-            throw new InvalidDataException("request body is empty");
+            throw new InvalidDataException("пустое тело запроса");
         }
-        Set<ConstraintViolation<Object>> errs = validator.validate(object);
-        if (!errs.isEmpty()) {
-            List<String> errors = errs.stream()
-                    .map(ConstraintViolation::getMessage)
-                    .sorted()
-                    .toList();
+        validator.validate(object).stream()
+                .map(ConstraintViolation::getMessage)
+                .sorted()
+                .forEach(errors::add);
+        if (!errors.isEmpty()) {
             throw new InvalidDataException(errors);
         }
     }

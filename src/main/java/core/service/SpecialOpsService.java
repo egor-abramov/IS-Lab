@@ -17,14 +17,14 @@ public class SpecialOpsService {
 
     public CountDto countFullNameGreater(String fullName) {
         if (fullName == null) {
-            throw new InvalidDataException("fullName value is required");
+            throw new InvalidDataException("fullName обязательное поле");
         }
         return new CountDto(repository.countFullNameGreater(fullName));
     }
 
     public ItemsDto<OrganizationDto> findNameContains(String sub) {
         if (sub == null || sub.isEmpty()) {
-            throw new InvalidDataException("substring is required");
+            throw new InvalidDataException("подстрока обязательна");
         }
         return new ItemsDto<>(repository.findNameContains(sub).stream().map(OrganizationDto::from).toList());
     }

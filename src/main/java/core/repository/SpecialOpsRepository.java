@@ -20,7 +20,7 @@ public class SpecialOpsRepository extends BaseRepository {
     public List<Organization> findNameContains(String sub) {
         return em.createStoredProcedureQuery("find_name_contains", Organization.class)
                 .registerStoredProcedureParameter(1, String.class, ParameterMode.IN)
-                .setParameter(1, sub)
+                .setParameter(1, sub.toLowerCase())
                 .getResultList();
     }
 

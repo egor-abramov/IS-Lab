@@ -1,6 +1,6 @@
 let page = 0;
 let total = 0;
-const size = 10;
+const size = 5;
 let editingId = null;
 let viewedId = null;
 
@@ -99,18 +99,21 @@ async function openOrgDialog(id) {
     document.getElementById('org-dialog').showModal();
 }
 
+const INVALID_NUMBER = -1;
+
 function readNumber(id, name, integer, errors) {
     const input = document.getElementById(id);
     if (input.validity.badInput) {
-        errors.push(name + ' must be a number');
-        return null;
+        errors.push(name + ' должно быть числом');
+        return INVALID_NUMBER;
     }
     if (input.value === '') {
         return null;
     }
     const n = Number(input.value);
     if (integer && !Number.isInteger(n)) {
-        errors.push(name + ' must be an integer');
+        errors.push(name + ' должно быть целым числом');
+        return INVALID_NUMBER;
     }
     return n;
 }
@@ -121,18 +124,16 @@ async function saveOrg() {
         name: document.getElementById('f-name').value,
         coordinatesId: valueOrNull('f-coordinates'),
         officialAddressId: valueOrNull('f-official'),
-        annualTurnover: readNumber('f-turnover', 'annual turnover', false, errors),
-        employeesCount: readNumber('f-employees', 'employees count', true, errors),
+        annualTurnover: readNumber('f-turnover', 'annualTurnover', false, errors),
+        employeesCount: readNumber('f-employees', 'employeesCount', true, errors),
         rating: readNumber('f-rating', 'rating', true, errors),
         fullName: document.getElementById('f-fullname').value,
         type: document.getElementById('f-type').value || null,
         postalAddressId: valueOrNull('f-postal')
     };
     const errorsList = document.getElementById('org-errors');
+    const badFields = errors.map(x => x.split(' ')[0]);
     try {
-        if (errors.length > 0) {
-            throw {errors: errors};
-        }
         if (editingId) {
             await api('PUT', '/organizations/' + editingId, body);
         } else {
@@ -140,7 +141,8 @@ async function saveOrg() {
         }
         document.getElementById('org-dialog').close();
     } catch (e) {
-        errorsList.innerHTML = (e.errors || [e.message]).map(x => '<li>' + esc(x) + '</li>').join('');
+        const serverErrors = (e.errors || [e.message]).filter(x => !badFields.includes(x.split(' ')[0]));
+        errorsList.innerHTML = errors.concat(serverErrors).map(x => '<li>' + esc(x) + '</li>').join('');
     }
 }
 

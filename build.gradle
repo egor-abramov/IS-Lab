@@ -81,27 +81,41 @@ war {
     }
 }
 
+def runSql = { FileCollection classpath, List<File> scripts ->
+    def db = loadDbConfig()
+    def props = new Properties()
+    props.setProperty('user', db.getProperty('db.user'))
+    props.setProperty('password', db.getProperty('db.password'))
+
+    def loader = new URLClassLoader(classpath.files.collect { it.toURI().toURL() } as URL[])
+    def driver = loader.loadClass('org.postgresql.Driver').getDeclaredConstructor().newInstance()
+    def conn = driver.connect(db.getProperty('db.url'), props)
+    try {
+        scripts.each {
+            conn.createStatement().execute(it.getText('UTF-8'))
+            println "applied ${it.name}"
+        }
+    } finally {
+        conn.close()
+    }
+}
+
 tasks.register('setupDb') {
     group = 'lab1'
     def classpath = configurations.jdbc
     def scripts = [file('sql/schema.sql'), file('sql/functions.sql')]
     doLast {
-        def db = loadDbConfig()
-        def props = new Properties()
-        props.setProperty('user', db.getProperty('db.user'))
-        props.setProperty('password', db.getProperty('db.password'))
+        runSql(classpath, scripts)
+    }
+}
 
-        def loader = new URLClassLoader(classpath.files.collect { it.toURI().toURL() } as URL[])
-        def driver = loader.loadClass('org.postgresql.Driver').getDeclaredConstructor().newInstance()
-        def conn = driver.connect(db.getProperty('db.url'), props)
-        try {
-            scripts.each {
-                conn.createStatement().execute(it.getText('UTF-8'))
-                println "applied ${it.name}"
-            }
-        } finally {
-            conn.close()
-        }
+tasks.register('seedDb') {
+    group = 'lab1'
+    dependsOn 'setupDb'
+    def classpath = configurations.jdbc
+    def scripts = [file('sql/seed.sql')]
+    doLast {
+        runSql(classpath, scripts)
     }
 }
 

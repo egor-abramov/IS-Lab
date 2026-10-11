@@ -40,16 +40,16 @@ public class CoordinatesService {
 
     public void delete(long id, Long replacementId) {
         if (repository.findById(id) == null) {
-            throw new NotFoundException("Coordinates", id);
+            throw new NotFoundException("координаты", id);
         }
         long usages = repository.countUsages(id);
         if (usages > 0) {
             if (replacementId == null) {
-                throw new EntityInUseException("coordinates are used by " + usages
-                        + " organizations, choose replacement coordinates");
+                throw new EntityInUseException("координаты используются организациями (" + usages
+                        + " шт.), выберите координаты для замены");
             }
             if (replacementId == id || repository.findById(replacementId) == null) {
-                throw new InvalidDataException("invalid replacement coordinates");
+                throw new InvalidDataException("некорректные координаты для замены");
             }
         }
         repository.deleteWithReplace(id, usages > 0 ? replacementId : null);

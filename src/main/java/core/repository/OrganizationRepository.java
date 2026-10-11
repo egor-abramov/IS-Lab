@@ -63,6 +63,6 @@ public class OrganizationRepository extends BaseRepository {
             return types.isEmpty() ? cb.disjunction() : o.get("type").in(types);
         }
 
-        return cb.greaterThan(cb.locate(cb.lower(o.<String>get(field)), substring), 0);
+        return cb.greaterThan(cb.locate(cb.lower(o.get(field)), substring), 0);
     }
 }

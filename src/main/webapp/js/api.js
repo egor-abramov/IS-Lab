@@ -8,7 +8,7 @@ async function api(method, url, body) {
     try {
         resp = await fetch('api' + url, options);
     } catch (e) {
-        throw apiError(0, ['server is unavailable']);
+        throw apiError(0, ['сервер недоступен']);
     }
     if (resp.status === 204) {
         return null;
@@ -20,7 +20,7 @@ async function api(method, url, body) {
     } catch (e) {
     }
     if (!resp.ok) {
-        throw apiError(resp.status, data && data.errors ? data.errors : ['error ' + resp.status]);
+        throw apiError(resp.status, data && data.errors ? data.errors : ['ошибка ' + resp.status]);
     }
     return data;
 }

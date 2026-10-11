@@ -15,6 +15,9 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @ApplicationScoped
 @Transactional
 public class AddressService {
@@ -32,16 +35,17 @@ public class AddressService {
     }
 
     public AddressDto create(AddressRequest r) {
-        validator.check(r);
+        List<String> errors = new ArrayList<>();
         Address a = new Address();
-        a.setStreet(r.street());
-        if (r.townId() != null) {
+        if (r != null && r.townId() != null) {
             Location town = locationRepository.findById(r.townId());
             if (town == null) {
-                throw new InvalidDataException(NotFoundException.message("Location", r.townId()));
+                errors.add(NotFoundException.message("город", r.townId()));
             }
             a.setTown(town);
         }
+        validator.check(r, errors);
+        a.setStreet(r.street());
         validator.check(a);
         Address saved = repository.save(a);
         notifier.broadcast("addresses");
@@ -50,16 +54,16 @@ public class AddressService {
 
     public void delete(long id, Long replacementId) {
         if (repository.findById(id) == null) {
-            throw new NotFoundException("Address", id);
+            throw new NotFoundException("адрес", id);
         }
         long usages = repository.countUsages(id);
         if (usages > 0) {
             if (replacementId == null) {
-                throw new EntityInUseException("address is used by " + usages
-                        + " organizations, choose a replacement address");
+                throw new EntityInUseException("адрес используется организациями (" + usages
+                        + " шт.), выберите адрес для замены");
             }
             if (replacementId == id || repository.findById(replacementId) == null) {
-                throw new InvalidDataException("invalid replacement address");
+                throw new InvalidDataException("некорректный адрес для замены");
             }
         }
         repository.deleteWithReplace(id, usages > 0 ? replacementId : null);

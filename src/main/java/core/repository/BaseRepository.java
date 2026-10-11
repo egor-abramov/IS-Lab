@@ -62,7 +62,7 @@ public abstract class BaseRepository {
         try {
             em.createQuery(update).executeUpdate();
         } catch (PersistenceException e) {
-            throw new DataConflictException("data violates database constraints");
+            throw new DataConflictException("данные нарушают ограничения базы данных");
         }
     }
 
@@ -70,7 +70,7 @@ public abstract class BaseRepository {
         try {
             em.flush();
         } catch (PersistenceException e) {
-            throw new DataConflictException("data violates database constraints");
+            throw new DataConflictException("данные нарушают ограничения базы данных");
         }
     }
 }

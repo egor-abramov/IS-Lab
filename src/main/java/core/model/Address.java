@@ -10,7 +10,7 @@ public class Address {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotNull(message = "street is required")
+    @NotNull(message = "street обязательное поле")
     @Column(nullable = false)
     private String street;
 

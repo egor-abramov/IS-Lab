@@ -20,7 +20,7 @@ public class OrganizationHandler {
 
     @GET
     public OrganizationPageDto list(@QueryParam("page") @DefaultValue("0") int page,
-                                    @QueryParam("size") @DefaultValue("10") int size,
+                                    @QueryParam("size") @DefaultValue("5") int size,
                                     @QueryParam("filterField") String filterField,
                                     @QueryParam("filterValue") String filterValue,
                                     @QueryParam("sortField") String sortField,

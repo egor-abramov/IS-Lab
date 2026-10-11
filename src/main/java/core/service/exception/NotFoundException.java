@@ -8,6 +8,6 @@ public class NotFoundException extends AppException {
     }
 
     public static String message(String what, long id) {
-        return what + " with id " + id + " not found";
+        return "не найдено: " + what + " с id " + id;
     }
 }
