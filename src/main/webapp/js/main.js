@@ -1,6 +1,7 @@
 function showSection(name) {
     if (name === 'users') reload(loadUsers);
-    for (const id of ['organizations', 'coordinates', 'addresses', 'locations', 'special', 'users']) {
+    if (name === 'imports') reload(loadImportHistory);
+    for (const id of ['organizations', 'coordinates', 'addresses', 'locations', 'special', 'users', 'imports']) {
         document.getElementById(id).hidden = id !== name;
     }
     for (const button of document.querySelectorAll('nav button')) {

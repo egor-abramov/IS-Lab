@@ -1,14 +1,12 @@
 package core.handler;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
 import core.dto.OrganizationDto;
 import core.dto.OrganizationPageDto;
 import core.dto.OrganizationRequest;
 import core.model.Organization;
+import core.model.OrganizationSource;
 import core.service.OrganizationService;
+import core.service.OrganizationImportService;
 import core.service.exception.InvalidDataException;
 import jakarta.enterprise.context.RequestScoped;
 import jakarta.inject.Inject;
@@ -23,14 +21,10 @@ import java.util.List;
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class OrganizationHandler {
-    private static final YAMLMapper YAML_MAPPER = YAMLMapper.builder()
-            .enable(DeserializationFeature.FAIL_ON_TRAILING_TOKENS)
-            .enable(DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES)
-            .disable(DeserializationFeature.ACCEPT_FLOAT_AS_INT)
-            .build();
-
     @Inject
     OrganizationService service;
+    @Inject
+    OrganizationImportService imports;
 
     @GET
     public OrganizationPageDto list(@QueryParam("page") @DefaultValue("0") int page,
@@ -70,21 +64,15 @@ public class OrganizationHandler {
     @Path("/list")
     @Consumes("application/yaml")
     public Response load(String body) {
-        if (body == null || body.isBlank()) {
-            throw new InvalidDataException("YAML-файл не должен быть пустым");
-        }
-
-        List<Organization> organizations;
-        try {
-            organizations = YAML_MAPPER.readValue(body, new TypeReference<>() {});
-        } catch (JsonProcessingException e) {
-            throw new InvalidDataException("некорректный YAML: ожидается список организаций с корректными типами полей");
-        }
-        if (organizations == null || organizations.isEmpty()) {
-            throw new InvalidDataException("список организаций не должен быть пустым");
-        }
-
-        service.load(organizations);
+        imports.load(body);
         return Response.status(Response.Status.CREATED).build();
+    }
+
+    @GET
+    @Path("/list")
+    public OrganizationPageDto loaded(@QueryParam("page") @DefaultValue("0") int page,
+                           @QueryParam("size") @DefaultValue("5") int size
+                           ) {
+        return service.list(page, size, "source", OrganizationSource.FILE.toString(), null, null);
     }
 }
