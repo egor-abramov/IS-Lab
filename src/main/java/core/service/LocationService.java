@@ -9,6 +9,7 @@ import core.service.exception.EntityInUseException;
 import core.service.exception.InvalidDataException;
 import core.service.exception.NotFoundException;
 import core.ws.UpdateNotifier;
+import core.security.CurrentUser;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
@@ -22,6 +23,8 @@ public class LocationService {
     DataValidator validator;
     @Inject
     UpdateNotifier notifier;
+    @Inject
+    CurrentUser currentUser;
 
     public ItemsDto<LocationDto> list() {
         return new ItemsDto<>(repository.findAll().stream().map(LocationDto::from).toList());
@@ -43,6 +46,7 @@ public class LocationService {
         if (repository.findById(id) == null) {
             throw new NotFoundException("город", id);
         }
+        currentUser.requireWrite(repository.findById(id));
         long usages = repository.countUsages(id);
         if (usages > 0) {
             if (replacementId == null) {
@@ -52,6 +56,9 @@ public class LocationService {
             if (replacementId == id || repository.findById(replacementId) == null) {
                 throw new InvalidDataException("некорректный город для замены");
             }
+        }
+        if (usages > 0) {
+            currentUser.requireOwnReference(repository.findById(replacementId));
         }
         repository.deleteWithReplace(id, usages > 0 ? replacementId : null);
         notifier.broadcast("locations");

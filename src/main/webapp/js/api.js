@@ -1,5 +1,9 @@
 async function api(method, url, body) {
     const options = {method: method, headers: {}};
+    const token = sessionStorage.getItem('token');
+    if (token) {
+        options.headers.Authorization = 'Bearer ' + token;
+    }
     if (body !== undefined) {
         options.headers['Content-Type'] = 'application/json';
         options.body = JSON.stringify(body);
@@ -9,6 +13,10 @@ async function api(method, url, body) {
         resp = await fetch('api' + url, options);
     } catch (e) {
         throw apiError(0, ['сервер недоступен']);
+    }
+    if (resp.status === 401 && token && !url.startsWith('/auth/login')) {
+        logout();
+        throw apiError(401, ['сеанс завершён, войдите снова']);
     }
     if (resp.status === 204) {
         return null;

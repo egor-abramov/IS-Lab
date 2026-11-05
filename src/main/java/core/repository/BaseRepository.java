@@ -1,6 +1,9 @@
 package core.repository;
 
 import core.service.exception.DataConflictException;
+import core.model.OwnedEntity;
+import core.security.CurrentUser;
+import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.PersistenceException;
@@ -14,28 +17,46 @@ import java.util.Arrays;
 import java.util.List;
 
 public abstract class BaseRepository {
+    @Inject
+    protected CurrentUser currentUser;
+
     @PersistenceContext(unitName = "lab1")
     EntityManager em;
 
-    protected <T> List<T> findAll(Class<T> type) {
+    protected <T extends OwnedEntity> T findById(Class<T> type, long id) {
+        T entity = em.find(type, id);
+        return entity != null && currentUser.canRead(entity) ? entity : null;
+    }
+
+    protected Predicate visible(CriteriaBuilder cb, Root<?> root) {
+        return currentUser.isAdmin() ? cb.conjunction() : cb.equal(root.get("ownerId"), currentUser.id());
+    }
+
+    protected <T extends OwnedEntity> List<T> findAll(Class<T> type) {
         CriteriaBuilder cb = em.getCriteriaBuilder();
         CriteriaQuery<T> query = cb.createQuery(type);
         Root<T> root = query.from(type);
-        query.orderBy(cb.asc(root.get("id")));
+        query.where(visible(cb, root)).orderBy(cb.asc(root.get("id")));
         return em.createQuery(query).getResultList();
     }
 
-    public <T> T save(T entity) {
+    public <T extends OwnedEntity> T save(T entity) {
+        if (entity.getId() == null) {
+            entity.setOwnerId(currentUser.id());
+        } else {
+            currentUser.requireWrite(entity);
+        }
         T saved = em.merge(entity);
         flush();
         return saved;
     }
 
-    protected boolean delete(Class<?> type, long id) {
-        Object entity = em.find(type, id);
+    protected <T extends OwnedEntity> boolean delete(Class<T> type, long id) {
+        T entity = findById(type, id);
         if (entity == null) {
             return false;
         }
+        currentUser.requireWrite(entity);
         em.remove(entity);
         flush();
         return true;
@@ -49,7 +70,7 @@ public abstract class BaseRepository {
                 .map(reference -> cb.equal(root.get(reference).get("id"), id))
                 .toArray(Predicate[]::new);
         query.select(cb.count(root))
-                .where(cb.or(conditions));
+                .where(cb.and(cb.equal(root.get("ownerId"), currentUser.id()), cb.or(conditions)));
         return em.createQuery(query).getSingleResult();
     }
 
@@ -58,7 +79,8 @@ public abstract class BaseRepository {
         CriteriaUpdate<T> update = cb.createCriteriaUpdate(type);
         Root<T> root = update.from(type);
         update.set(root.get(reference), replacement)
-                .where(cb.equal(root.get(reference).get("id"), oldId));
+                .where(cb.and(cb.equal(root.get("ownerId"), currentUser.id()),
+                        cb.equal(root.get(reference).get("id"), oldId)));
         try {
             em.createQuery(update).executeUpdate();
         } catch (PersistenceException e) {

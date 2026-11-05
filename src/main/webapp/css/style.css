@@ -8,6 +8,15 @@
     --danger: #dc2626;
 }
 
+[hidden] {
+    display: none !important;
+}
+
+#auth-panel {
+    max-width: 480px;
+    margin: 64px auto;
+}
+
 * {
     box-sizing: border-box;
 }

@@ -12,6 +12,8 @@ import core.repository.OrganizationRepository;
 import core.service.exception.InvalidDataException;
 import core.service.exception.NotFoundException;
 import core.ws.UpdateNotifier;
+import core.security.CurrentUser;
+import core.model.OwnedEntity;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
@@ -37,6 +39,8 @@ public class OrganizationService {
     DataValidator validator;
     @Inject
     UpdateNotifier notifier;
+    @Inject
+    CurrentUser currentUser;
 
     public OrganizationPageDto list(int page, int size, String filterField, String filterValue,
                                     String sortField, String sortDir) {
@@ -82,8 +86,31 @@ public class OrganizationService {
         for (Organization o: organizations) {
             validator.check(o);
         }
+        for (Organization o : organizations) {
+            prepareImported(o);
+            prepareImported(o.getCoordinates());
+            prepareAddress(o.getOfficialAddress());
+            prepareAddress(o.getPostalAddress());
+        }
         repository.load(organizations);
         notifier.broadcast("organizations");
+    }
+
+    private void prepareImported(OwnedEntity entity) {
+        if (entity == null) {
+            return;
+        }
+        if (entity.getId() != null) {
+            throw new InvalidDataException("id генерируется сервером и не должен передаваться при импорте");
+        }
+        entity.setOwnerId(currentUser.id());
+    }
+
+    private void prepareAddress(Address address) {
+        if (address != null) {
+            prepareImported(address);
+            prepareImported(address.getTown());
+        }
     }
 
     private OrganizationDto save(Organization o, OrganizationRequest r) {
@@ -91,12 +118,18 @@ public class OrganizationService {
             throw new InvalidDataException("пустое тело запроса");
         }
 
+        if (o.getId() != null) {
+            currentUser.requireWrite(o);
+        }
         List<String> errors = new ArrayList<>();
 
         o.setCoordinates(findCoordinates(r.coordinatesId(), errors));
         o.setOfficialAddress(findAddress(r.officialAddressId(), errors));
         o.setPostalAddress(findAddress(r.postalAddressId(), errors));
         validator.check(r, errors);
+        currentUser.requireOwnReference(o.getCoordinates());
+        currentUser.requireOwnReference(o.getOfficialAddress());
+        currentUser.requireOwnReference(o.getPostalAddress());
 
         o.setName(r.name().trim());
         o.setAnnualTurnover(r.annualTurnover());

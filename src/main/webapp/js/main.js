@@ -1,5 +1,6 @@
 function showSection(name) {
-    for (const id of ['organizations', 'coordinates', 'addresses', 'locations', 'special']) {
+    if (name === 'users') reload(loadUsers);
+    for (const id of ['organizations', 'coordinates', 'addresses', 'locations', 'special', 'users']) {
         document.getElementById(id).hidden = id !== name;
     }
     for (const button of document.querySelectorAll('nav button')) {
@@ -30,20 +31,22 @@ function connectUpdates(reconnect) {
     const protocol = location.protocol === 'https:' ? 'wss://' : 'ws://';
     const ws = new WebSocket(protocol + location.host + path + 'updates');
     ws.onopen = function () {
-        if (reconnect) {
-            loadAll();
-        }
+        ws.send(sessionStorage.getItem('token'));
     };
     ws.onmessage = function (e) {
+        if (e.data === 'ready' && reconnect) loadAll();
         if (e.data === 'organizations') reload(loadOrganizations);
         if (e.data === 'coordinates') reload(loadCoordinates);
         if (e.data === 'addresses') reload(loadAddresses);
         if (e.data === 'locations') reload(loadLocations);
     };
-    ws.onclose = function () {
-        setTimeout(() => connectUpdates(true), 3000);
+    ws.onclose = function (e) {
+        if (e.code === 1008) {
+            logout();
+        } else if (sessionStorage.getItem('token')) {
+            setTimeout(() => connectUpdates(true), 3000);
+        }
     };
 }
 
-loadAll();
-connectUpdates(false);
+initializeAuth();

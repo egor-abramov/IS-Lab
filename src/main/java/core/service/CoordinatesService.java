@@ -9,6 +9,7 @@ import core.service.exception.EntityInUseException;
 import core.service.exception.InvalidDataException;
 import core.service.exception.NotFoundException;
 import core.ws.UpdateNotifier;
+import core.security.CurrentUser;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
@@ -22,6 +23,8 @@ public class CoordinatesService {
     DataValidator validator;
     @Inject
     UpdateNotifier notifier;
+    @Inject
+    CurrentUser currentUser;
 
     public ItemsDto<CoordinatesDto> list() {
         return new ItemsDto<>(repository.findAll().stream().map(CoordinatesDto::from).toList());
@@ -42,6 +45,7 @@ public class CoordinatesService {
         if (repository.findById(id) == null) {
             throw new NotFoundException("координаты", id);
         }
+        currentUser.requireWrite(repository.findById(id));
         long usages = repository.countUsages(id);
         if (usages > 0) {
             if (replacementId == null) {
@@ -51,6 +55,9 @@ public class CoordinatesService {
             if (replacementId == id || repository.findById(replacementId) == null) {
                 throw new InvalidDataException("некорректные координаты для замены");
             }
+        }
+        if (usages > 0) {
+            currentUser.requireOwnReference(repository.findById(replacementId));
         }
         repository.deleteWithReplace(id, usages > 0 ? replacementId : null);
         notifier.broadcast("coordinates");

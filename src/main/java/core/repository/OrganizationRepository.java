@@ -16,7 +16,7 @@ import java.util.List;
 public class OrganizationRepository extends BaseRepository {
 
     public Organization findById(long id) {
-        return em.find(Organization.class, id);
+        return findById(Organization.class, id);
     }
 
     public boolean delete(long id) {
@@ -30,7 +30,7 @@ public class OrganizationRepository extends BaseRepository {
         Root<Organization> o = query.from(Organization.class);
 
         Order order = asc ? cb.asc(o.get(sortField)) : cb.desc(o.get(sortField));
-        query.where(filter(cb, o, filterField, filterValue))
+        query.where(cb.and(visible(cb, o), filter(cb, o, filterField, filterValue)))
                 .orderBy(order, cb.asc(o.get("id")));
 
         return em.createQuery(query)
@@ -45,7 +45,7 @@ public class OrganizationRepository extends BaseRepository {
         Root<Organization> o = query.from(Organization.class);
 
         query.select(cb.count(o))
-                .where(filter(cb, o, filterField, filterValue));
+                .where(cb.and(visible(cb, o), filter(cb, o, filterField, filterValue)));
 
         return em.createQuery(query).getSingleResult();
     }

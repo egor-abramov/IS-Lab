@@ -29,6 +29,15 @@ dependencies {
     compileOnly 'org.projectlombok:lombok:1.18.48'
     annotationProcessor 'org.projectlombok:lombok:1.18.48'
     implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.19.2'
+    implementation 'io.jsonwebtoken:jjwt-api:0.12.6'
+    runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.6'
+    runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.12.6'
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.11.4'
+    testImplementation 'org.mockito:mockito-core:5.15.2'
+    testImplementation 'jakarta.platform:jakarta.jakartaee-api:10.0.0'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    testRuntimeOnly 'org.jboss.resteasy:resteasy-core:6.2.11.Final'
+    testRuntimeOnly 'org.postgresql:postgresql:42.7.4'
 
     implementation('org.eclipse.persistence:org.eclipse.persistence.jpa:4.0.4') {
         exclude group: 'org.eclipse.persistence', module: 'org.eclipse.persistence.moxy'
@@ -158,4 +167,9 @@ tasks.register('stopServer', Exec) {
     commandLine wildflyScript('jboss-cli') + ['--connect', '--command=shutdown']
     environment 'NOPAUSE', 'true'
     ignoreExitValue = true
+}
+
+test {
+    useJUnitPlatform()
+    systemProperty 'postgresTests', project.hasProperty('postgresTests')
 }

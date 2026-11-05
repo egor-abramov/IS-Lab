@@ -9,7 +9,10 @@ import lombok.Setter;
 @Setter
 @Entity
 @Table(name = "coordinates")
-public class Coordinates {
+public class Coordinates implements OwnedEntity {
+    @Column(name = "owner_id")
+    private Long ownerId;
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

@@ -12,7 +12,10 @@ import java.time.LocalDateTime;
 @Setter
 @Entity
 @Table(name = "organization")
-public class Organization {
+public class Organization implements OwnedEntity {
+    @Column(name = "owner_id")
+    private Long ownerId;
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Positive(message = "id должно быть больше 0")

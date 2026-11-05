@@ -10,7 +10,10 @@ import lombok.Setter;
 @Setter
 @Entity
 @Table(name = "address")
-public class Address {
+public class Address implements OwnedEntity {
+    @Column(name = "owner_id")
+    private Long ownerId;
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

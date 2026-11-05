@@ -6,6 +6,7 @@
     <persistence-unit name="lab1" transaction-type="JTA">
         <provider>org.eclipse.persistence.jpa.PersistenceProvider</provider>
         <jta-data-source>java:jboss/datasources/lab1</jta-data-source>
+        <class>core.model.AppUser</class>
         <class>core.model.Organization</class>
         <class>core.model.Coordinates</class>
         <class>core.model.Address</class>

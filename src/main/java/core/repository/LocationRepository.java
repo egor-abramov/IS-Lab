@@ -14,7 +14,7 @@ public class LocationRepository extends BaseRepository {
     }
 
     public Location findById(long id) {
-        return em.find(Location.class, id);
+        return findById(Location.class, id);
     }
 
     public long countUsages(long id) {
