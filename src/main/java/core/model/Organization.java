@@ -62,6 +62,9 @@ public class Organization implements OwnedEntity {
     @Valid
     private Address postalAddress;
 
+    @Enumerated(EnumType.STRING)
+    private OrganizationSource source;
+
     @PrePersist
     void onCreate() {
         creationDate = LocalDateTime.now();

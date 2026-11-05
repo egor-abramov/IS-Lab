@@ -6,6 +6,7 @@ import core.dto.OrganizationRequest;
 import core.model.Address;
 import core.model.Coordinates;
 import core.model.Organization;
+import core.model.OrganizationSource;
 import core.repository.AddressRepository;
 import core.repository.CoordinatesRepository;
 import core.repository.OrganizationRepository;
@@ -25,7 +26,7 @@ import java.util.Set;
 @ApplicationScoped
 @Transactional
 public class OrganizationService {
-    private static final Set<String> FILTER_FIELDS = Set.of("name", "fullName", "type");
+    private static final Set<String> FILTER_FIELDS = Set.of("name", "fullName", "type", "source");
     private static final Set<String> SORT_FIELDS = Set.of("id", "name", "creationDate", "annualTurnover",
             "employeesCount", "rating", "fullName", "type");
 
@@ -85,6 +86,7 @@ public class OrganizationService {
     public void load(List<Organization> organizations) {
         for (Organization o: organizations) {
             validator.check(o);
+            o.setSource(OrganizationSource.FILE);
         }
         for (Organization o : organizations) {
             prepareImported(o);
@@ -137,6 +139,7 @@ public class OrganizationService {
         o.setRating(r.rating());
         o.setFullName(r.fullName() == null || r.fullName().isBlank() ? null : r.fullName().trim());
         o.setType(r.type());
+        o.setSource(OrganizationSource.USER);
 
         validator.check(o);
         Organization saved = repository.save(o);

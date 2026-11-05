@@ -1,6 +1,7 @@
 package core.repository;
 
 import core.model.Organization;
+import core.model.OrganizationSource;
 import core.model.OrganizationType;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.persistence.criteria.CriteriaBuilder;
@@ -51,9 +52,19 @@ public class OrganizationRepository extends BaseRepository {
     }
 
     public void load(List<Organization> organizations) {
-        for (Organization o: organizations) {
+        for (Organization o : organizations) {
             em.persist(o);
         }
+    }
+
+    public List<Organization> loaded() {
+        CriteriaBuilder cb = em.getCriteriaBuilder();
+        CriteriaQuery<Organization> query = cb.createQuery(Organization.class);
+        Root<Organization> o = query.from(Organization.class);
+
+        query.where(cb.and(visible(cb, o), cb.equal(o.get("source"), OrganizationSource.FILE)))
+                .orderBy(cb.asc(o.get("id")));
+        return em.createQuery(query).getResultList();
     }
 
     private Predicate filter(CriteriaBuilder cb, Root<Organization> o, String field, String value) {
@@ -67,6 +78,13 @@ public class OrganizationRepository extends BaseRepository {
                     .filter(t -> t.name().toLowerCase().contains(substring))
                     .toList();
             return types.isEmpty() ? cb.disjunction() : o.get("type").in(types);
+        }
+
+        if (field.equals("source")) {
+            List<OrganizationSource> sources = Arrays.stream(OrganizationSource.values())
+                    .filter(s -> s.name().toLowerCase().contains(substring))
+                    .toList();
+            return sources.isEmpty() ? cb.disjunction() : o.get("source").in(sources);
         }
 
         return cb.greaterThan(cb.locate(cb.lower(o.get(field)), substring), 0);
