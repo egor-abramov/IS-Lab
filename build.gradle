@@ -26,6 +26,8 @@ configurations {
 
 dependencies {
     compileOnly 'jakarta.platform:jakarta.jakartaee-api:10.0.0'
+    compileOnly 'org.projectlombok:lombok:1.18.48'
+    annotationProcessor 'org.projectlombok:lombok:1.18.48'
 
     implementation('org.eclipse.persistence:org.eclipse.persistence.jpa:4.0.4') {
         exclude group: 'org.eclipse.persistence', module: 'org.eclipse.persistence.moxy'
