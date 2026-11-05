@@ -1,6 +1,7 @@
 package core.model;
 
 import jakarta.persistence.*;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 
 import java.time.LocalDateTime;
@@ -18,15 +19,17 @@ public class Organization {
     private String name;
 
     @NotNull(message = "coordinates обязательное поле")
-    @ManyToOne(optional = false)
+    @ManyToOne(optional = false, cascade = CascadeType.PERSIST)
     @JoinColumn(name = "coordinates_id", nullable = false)
+    @Valid
     private Coordinates coordinates;
 
     @Column(name = "creation_date", nullable = false, updatable = false)
     private LocalDateTime creationDate;
 
-    @ManyToOne
+    @ManyToOne(cascade = CascadeType.PERSIST)
     @JoinColumn(name = "official_address_id")
+    @Valid
     private Address officialAddress;
 
     @Positive(message = "annualTurnover должно быть больше 0")
@@ -47,8 +50,9 @@ public class Organization {
     private OrganizationType type;
 
     @NotNull(message = "postalAddress обязательное поле")
-    @ManyToOne(optional = false)
+    @ManyToOne(optional = false, cascade = CascadeType.PERSIST)
     @JoinColumn(name = "postal_address_id", nullable = false)
+    @Valid
     private Address postalAddress;
 
     @PrePersist

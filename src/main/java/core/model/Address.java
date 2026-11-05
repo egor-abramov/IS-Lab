@@ -1,6 +1,7 @@
 package core.model;
 
 import jakarta.persistence.*;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 
 @Entity
@@ -14,8 +15,9 @@ public class Address {
     @Column(nullable = false)
     private String street;
 
-    @ManyToOne
+    @ManyToOne(cascade = CascadeType.PERSIST)
     @JoinColumn(name = "town_id")
+    @Valid
     private Location town;
 
     public Long getId() { return id; }
