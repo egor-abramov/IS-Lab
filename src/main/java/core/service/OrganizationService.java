@@ -78,6 +78,14 @@ public class OrganizationService {
         notifier.broadcast("organizations");
     }
 
+    public void load(List<Organization> organizations) {
+        for (Organization o: organizations) {
+            validator.check(o);
+        }
+        repository.load(organizations);
+        notifier.broadcast("organizations");
+    }
+
     private OrganizationDto save(Organization o, OrganizationRequest r) {
         if (r == null) {
             throw new InvalidDataException("пустое тело запроса");

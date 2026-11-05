@@ -50,6 +50,12 @@ public class OrganizationRepository extends BaseRepository {
         return em.createQuery(query).getSingleResult();
     }
 
+    public void load(List<Organization> organizations) {
+        for (Organization o: organizations) {
+            em.persist(o);
+        }
+    }
+
     private Predicate filter(CriteriaBuilder cb, Root<Organization> o, String field, String value) {
         if (field == null || value == null || value.isEmpty()) {
             return cb.conjunction();
