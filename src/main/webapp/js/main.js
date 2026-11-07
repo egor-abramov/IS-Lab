@@ -1,6 +1,9 @@
 function showSection(name) {
     if (name === 'users') reload(loadUsers);
-    if (name === 'imports') reload(loadImportHistory);
+    if (name === 'imports') {
+        reload(loadImportHistory);
+        reload(loadImportedOrganizations);
+    }
     for (const id of ['organizations', 'coordinates', 'addresses', 'locations', 'special', 'users', 'imports']) {
         document.getElementById(id).hidden = id !== name;
     }
@@ -35,8 +38,17 @@ function connectUpdates(reconnect) {
         ws.send(sessionStorage.getItem('token'));
     };
     ws.onmessage = function (e) {
-        if (e.data === 'ready' && reconnect) loadAll();
-        if (e.data === 'organizations') reload(loadOrganizations);
+        if (e.data === 'ready' && reconnect) {
+            loadAll();
+            if (!document.getElementById('imports').hidden) {
+                reload(loadImportedOrganizations);
+                reload(loadImportHistory);
+            }
+        }
+        if (e.data === 'organizations') {
+            reload(loadOrganizations);
+            if (!document.getElementById('imports').hidden) reload(loadImportedOrganizations);
+        }
         if (e.data === 'coordinates') reload(loadCoordinates);
         if (e.data === 'addresses') reload(loadAddresses);
         if (e.data === 'locations') reload(loadLocations);

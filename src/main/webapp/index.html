@@ -50,6 +50,7 @@
                     <option value="name">name</option>
                     <option value="fullName">fullName</option>
                     <option value="type">type</option>
+                    <option value="source">source (USER/FILE)</option>
                 </select>
             </label>
             <input id="filter-value" placeholder="часть значения">
@@ -161,6 +162,22 @@
         </table>
     </section>
     <section id="imports" hidden>
+        <h2>Импорт организаций</h2>
+        <form class="toolbar" onsubmit="uploadOrganizations(event)">
+            <input id="import-file" type="file" accept=".yaml,.yml,application/yaml" required>
+            <button id="import-submit" class="primary" type="submit">Загрузить YAML</button>
+        </form>
+        <p id="import-message" role="status"></p>
+        <h2>Организации из файлов</h2>
+        <table>
+            <thead><tr><th>id</th><th>name</th><th>Владелец (id)</th><th></th></tr></thead>
+            <tbody id="imported-rows"></tbody>
+        </table>
+        <div class="pager">
+            <button onclick="prevImportedPage()">&larr; Назад</button>
+            <span id="imported-page-info"></span>
+            <button onclick="nextImportedPage()">Вперёд &rarr;</button>
+        </div>
         <h2>История импорта</h2>
         <button onclick="reload(loadImportHistory)">Обновить</button>
         <table>

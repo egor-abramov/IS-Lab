@@ -1,12 +1,12 @@
-async function api(method, url, body) {
+async function api(method, url, body, contentType = 'application/json') {
     const options = {method: method, headers: {}};
     const token = sessionStorage.getItem('token');
     if (token) {
         options.headers.Authorization = 'Bearer ' + token;
     }
     if (body !== undefined) {
-        options.headers['Content-Type'] = 'application/json';
-        options.body = JSON.stringify(body);
+        options.headers['Content-Type'] = contentType;
+        options.body = contentType === 'application/json' ? JSON.stringify(body) : body;
     }
     let resp;
     try {
