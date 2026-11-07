@@ -1,4 +1,8 @@
 import groovy.xml.XmlUtil
+import javax.crypto.SecretKeyFactory
+import javax.crypto.spec.PBEKeySpec
+import java.security.SecureRandom
+import java.util.Base64
 
 plugins {
     id 'java'
@@ -131,6 +135,60 @@ tasks.register('seedDb') {
     }
 }
 
+tasks.register('createAdmin') {
+    group = 'lab2'
+    dependsOn 'setupDb'
+    def classpath = configurations.jdbc
+    doLast {
+        def db = loadDbConfig()
+        def login = db.getProperty('admin.login', 'admin').trim()
+        def password = db.getProperty('admin.password', 'admin12345')
+        if (!(login ==~ /[a-zA-Z0-9_]{3,64}/) || password.length() < 8 || password.length() > 128) {
+            throw new GradleException('Invalid admin.login or admin.password in profile config')
+        }
+
+        def props = new Properties()
+        props.setProperty('user', db.getProperty('db.user'))
+        props.setProperty('password', db.getProperty('db.password'))
+        def loader = new URLClassLoader(classpath.files.collect { it.toURI().toURL() } as URL[])
+        def driver = loader.loadClass('org.postgresql.Driver').getDeclaredConstructor().newInstance()
+        def conn = driver.connect(db.getProperty('db.url'), props)
+        try {
+            def existing = conn.prepareStatement('select role from app_user where login = ?')
+            existing.setString(1, login)
+            def rows = existing.executeQuery()
+            if (rows.next()) {
+                if (rows.getString(1) != 'ADMIN') {
+                    throw new GradleException("User '${login}' already exists without ADMIN role")
+                }
+                println "admin '${login}' already exists"
+            } else {
+                def salt = new byte[16]
+                new SecureRandom().nextBytes(salt)
+                def spec = new PBEKeySpec(password.toCharArray(), salt, 600_000, 256)
+                def hash
+                try {
+                    hash = SecretKeyFactory.getInstance('PBKDF2WithHmacSHA256').generateSecret(spec).getEncoded()
+                } finally {
+                    spec.clearPassword()
+                }
+                def stored = Base64.encoder.encodeToString(salt) + ':' + Base64.encoder.encodeToString(hash)
+                def insert = conn.prepareStatement("insert into app_user (login, password_hash, role) values (?, ?, 'ADMIN')")
+                insert.setString(1, login)
+                insert.setString(2, stored)
+                insert.executeUpdate()
+                insert.close()
+                println "admin '${login}' created"
+            }
+            rows.close()
+            existing.close()
+        } finally {
+            conn.close()
+            loader.close()
+        }
+    }
+}
+
 tasks.register('jdbcDriver', Copy) {
     group = 'lab1'
     from configurations.jdbc
@@ -154,7 +212,7 @@ tasks.register('deploy', Copy) {
 
 tasks.register('up', Exec) {
     group = 'lab1'
-    dependsOn 'setupDb', 'deploy'
+    dependsOn 'createAdmin', 'deploy'
     commandLine wildflyScript('standalone')
     environment 'NOPAUSE', 'true'
     doFirst {
