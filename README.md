@@ -1,7 +1,7 @@
-# Лабораторная работа 1
+# Информационная система, лабораторная работа № 2
 
 * Студент: Абрамов Егор Денисович
-* Группа: З3319
+* Группа: P3319
 
 ## Настройка
 
@@ -9,7 +9,8 @@
 cp config/example.properties config/local.properties
 ```
 
-Вписать данные БД в `config/local.properties`, путь к WildFly -- в `gradle.properties`.
+Вписать данные PostgreSQL в `config/local.properties`, путь к WildFly в `gradle.properties`.
+Нужны JDK 17, PostgreSQL и WildFly 37. Gradle запускается через приложенный wrapper.
 
 ## Запуск
 
@@ -19,6 +20,26 @@ cp config/example.properties config/local.properties
 ./gradlew stopServer  # остановить сервер
 ./gradlew seedDb      # добавить 10 тестовых организаций
 ```
+
+В Windows используйте `gradlew.bat` вместо `./gradlew`. После запуска откройте
+`http://localhost:8080/lab1/`. Для импорта загрузите YAML-файл через интерфейс.
+
+## Ограничения ЛР2 и JMeter
+
+У организаций должны быть уникальны `name`, непустое `fullName` и пара координат
+`(x, y)`. Строки сравниваются без учета регистра и пробелов по краям. Проверка
+выполняется сервисом при создании, изменении и импорте; конфликт возвращает `409`.
+
+Для проверки параллельных запросов запустите приложение и Apache JMeter 5.6.3:
+
+```text
+jmeter -n -t jmeter/lab2.jmx -l jmeter/results.jtl
+```
+
+Сценарий создает двух пользователей и тестовые данные, поэтому использует уникальные
+имена при каждом запуске. Адрес API можно изменить параметром
+`-Jlab2.base=http://localhost:8080/lab1/api`. Итоги последнего прогона приведены
+в `report/lab2.md`.
 
 ## helios
 
