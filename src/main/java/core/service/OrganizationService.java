@@ -75,7 +75,6 @@ public class OrganizationService {
     }
 
     public OrganizationDto update(long id, OrganizationRequest request) {
-        repository.lockUniquenessCheck();
         return save(findForUpdate(id), request);
     }
 
@@ -98,7 +97,6 @@ public class OrganizationService {
             prepareAddress(o.getOfficialAddress());
             prepareAddress(o.getPostalAddress());
         }
-        repository.lockUniquenessCheck();
         checkUniqueness(organizations);
         repository.load(organizations);
         notifier.broadcast("organizations");
@@ -129,7 +127,6 @@ public class OrganizationService {
         if (o.getId() != null) {
             currentUser.requireWrite(o);
         }
-        repository.lockUniquenessCheck();
         List<String> errors = new ArrayList<>();
 
         o.setCoordinates(findCoordinates(r.coordinatesId(), errors));

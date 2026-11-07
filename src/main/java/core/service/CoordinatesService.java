@@ -46,7 +46,6 @@ public class CoordinatesService {
     }
 
     public void delete(long id, Long replacementId) {
-        organizations.lockUniquenessCheck();
         if (repository.findById(id) == null) {
             throw new NotFoundException("координаты", id);
         }

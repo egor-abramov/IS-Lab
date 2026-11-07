@@ -26,10 +26,6 @@ public class OrganizationRepository extends BaseRepository {
         return organization != null && currentUser.canRead(organization) ? organization : null;
     }
 
-    public void lockUniquenessCheck() {
-        em.createNativeQuery("select pg_advisory_xact_lock(3171, 2)").getSingleResult();
-    }
-
     public List<Organization> findAllForUniqueness() {
         return em.createQuery("select o from Organization o", Organization.class).getResultList();
     }
