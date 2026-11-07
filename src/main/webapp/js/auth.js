@@ -43,7 +43,7 @@ async function initializeAuth() {
         document.getElementById('auth-panel').hidden = true;
         document.getElementById('app-header').hidden = false;
         document.getElementById('app-main').hidden = false;
-        document.getElementById('current-user').textContent = currentUser.login + ' (' + currentUser.role + ')';
+        document.getElementById('current-user').textContent = currentUser.login;
         document.getElementById('users-nav').hidden = currentUser.role !== 'ADMIN';
         await loadAll();
         connectUpdates(false);

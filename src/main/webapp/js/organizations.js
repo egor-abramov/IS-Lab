@@ -5,7 +5,14 @@ let editingId = null;
 let viewedId = null;
 
 function formatDate(value) {
-    return value ? value.replace('T', ' ').substring(0, 19) : '';
+    if (!value) return '';
+    if (Array.isArray(value)) {
+        const [year, month, day, hour = 0, minute = 0, second = 0] = value;
+        const twoDigits = number => String(number).padStart(2, '0');
+        return year + '-' + twoDigits(month) + '-' + twoDigits(day) + ' '
+            + twoDigits(hour) + ':' + twoDigits(minute) + ':' + twoDigits(second);
+    }
+    return String(value).replace('T', ' ').substring(0, 19);
 }
 
 function orgRow(o) {
