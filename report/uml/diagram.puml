@@ -37,7 +37,6 @@ package "core.service" {
 package "core.repository" {
     class OrganizationRepository {
         +findByIdForUpdate(id)
-        +lockUniquenessCheck()
         +findAllForUniqueness()
     }
     class ImportOperationRepository
@@ -56,7 +55,7 @@ ImportHistoryHandler --> ImportHistoryService
 AuthHandler --> AuthService
 OrganizationImportService --> OrganizationService : atomic import
 OrganizationImportService --> ImportHistoryService : status
-OrganizationService --> OrganizationRepository : uniqueness and row locks
+OrganizationService --> OrganizationRepository : uniqueness checks and row locks
 ImportHistoryService --> ImportOperationRepository
 AuthService --> UserRepository
 AuthFilter --> CurrentUser

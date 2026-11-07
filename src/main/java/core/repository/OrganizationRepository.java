@@ -75,16 +75,6 @@ public class OrganizationRepository extends BaseRepository {
         }
     }
 
-    public List<Organization> loaded() {
-        CriteriaBuilder cb = em.getCriteriaBuilder();
-        CriteriaQuery<Organization> query = cb.createQuery(Organization.class);
-        Root<Organization> o = query.from(Organization.class);
-
-        query.where(cb.and(visible(cb, o), cb.equal(o.get("source"), OrganizationSource.FILE)))
-                .orderBy(cb.asc(o.get("id")));
-        return em.createQuery(query).getResultList();
-    }
-
     private Predicate filter(CriteriaBuilder cb, Root<Organization> o, String field, String value) {
         if (field == null || value == null || value.isEmpty()) {
             return cb.conjunction();

@@ -15,6 +15,8 @@
 
 ![Диаграмма пакетов и сервисов ЛР2](img/diagram.png)
 
+![Диаграмма классов предметной области](img/domain.png)
+
 В ветке `lab-2` добавлены YAML-импорт списка организаций, история импортов. Добавлены регистрация, вход по JWT, роли, владельцы данных и ограничения доступа. Сервисный слой теперь проверяет уникальность `name`, непустого `fullName` и пары координат `(x, y)` у организаций. 
 ## 3. Исходный код и проверка JMeter
 
@@ -22,17 +24,15 @@
 
 ### Где смотреть реализацию
 
-| Что проверять | Классы и методы |
-| --- | --- |
-| Загрузка файла и атомарный импорт | [`OrganizationHandler.load`](../src/main/java/core/handler/OrganizationHandler.java), [`OrganizationImportService.load`, `parse`](../src/main/java/core/service/OrganizationImportService.java), [`OrganizationService.load`](../src/main/java/core/service/OrganizationService.java) с `@Transactional` |
+| Что проверять | Классы и методы                                                                                                                                                                                                                                                                                             |
+| --- |-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Загрузка файла и атомарный импорт | [`OrganizationHandler.load`](../src/main/java/core/handler/OrganizationHandler.java), [`OrganizationImportService.load`, `parse`](../src/main/java/core/service/OrganizationImportService.java), [`OrganizationService.load`](../src/main/java/core/service/OrganizationService.java)                       |
 | История успешных и ошибочных загрузок | [`ImportHistoryService.start`, `finish`, `history`](../src/main/java/core/service/ImportHistoryService.java), [`ImportOperationRepository.history`](../src/main/java/core/repository/ImportOperationRepository.java), [`ImportHistoryHandler.list`](../src/main/java/core/handler/ImportHistoryHandler.java) |
-| Новые правила уникальности | [`OrganizationService.checkUniqueness`](../src/main/java/core/service/OrganizationService.java), [`OrganizationRepository.lockUniquenessCheck`, `findAllForUniqueness`](../src/main/java/core/repository/OrganizationRepository.java) |
-| Конкурентные изменения одного объекта | [`OrganizationService.update`, `delete`](../src/main/java/core/service/OrganizationService.java), [`OrganizationRepository.findByIdForUpdate`](../src/main/java/core/repository/OrganizationRepository.java), [`CurrentUser.requireWrite`](../src/main/java/core/security/CurrentUser.java) |
-| Пользователи и авторизация | [`AuthService.register`, `login`](../src/main/java/core/service/AuthService.java), [`AuthFilter.filter`](../src/main/java/core/security/AuthFilter.java), Gradle-задача `createAdmin` в [`build.gradle`](../build.gradle) |
-| Интерфейс импорта | Функции `uploadOrganizations`, `loadImportHistory` в [`imports.js`](../src/main/webapp/js/imports.js) |
-| Параллельный сценарий | Фазы `unique`, `foreign_edit_delete`, `edit_delete`, `import`, `verify` в [`jmeter/lab2.groovy`](../jmeter/lab2.groovy) |
+| Новые правила уникальности | [`OrganizationService.checkUniqueness`](../src/main/java/core/service/OrganizationService.java), [`findAllForUniqueness`](../src/main/java/core/repository/OrganizationRepository.java)                                                                                                                     |
+| Конкурентные изменения одного объекта | [`OrganizationService.update`, `delete`](../src/main/java/core/service/OrganizationService.java), [`OrganizationRepository.findByIdForUpdate`](../src/main/java/core/repository/OrganizationRepository.java), [`CurrentUser.requireWrite`](../src/main/java/core/security/CurrentUser.java)                 |
+| Пользователи и авторизация | [`AuthService.register`, `login`](../src/main/java/core/service/AuthService.java), [`AuthFilter.filter`](../src/main/java/core/security/AuthFilter.java)                                                                                  |
 
-**Пример импорта**: [`examples/organizations.yml`](../examples/organizations.yml) содержит три организации с вложенными координатами и адресами. Файл загружается через форму импорта. Повторная загрузка вызовет `409` из-за ограничений уникальности.
+**Пример импорта**: [`examples/organizations.yml`](../examples/organizations.yml) содержит три организации с вложенными координатами и адресами. Файл загружается через форму импорта.
 
 **Сценарий**: [`jmeter/lab2.jmx`](../jmeter/lab2.jmx), код запросов: [`jmeter/lab2.groovy`](../jmeter/lab2.groovy), результаты: [`jmeter/results.jtl`](../jmeter/results.jtl).
 
@@ -52,6 +52,5 @@
 | История | `SUCCESS` с `addedCount = 2` и `FAILED` с `addedCount = null` у соответствующих пользователей |
 
 PostgreSQL работает с уровнем изоляции `READ COMMITTED`. 
-Сервис берет общую транзакционную блокировку перед проверкой и записью. 
 Для изменения и удаления одного объекта применяется блокировка строки `PESSIMISTIC_WRITE`. 
 Проверка после прогона не выявила нарушения, поэтому повышать уровень изоляции всех транзакций не потребовалось.
