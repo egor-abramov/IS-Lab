@@ -16,21 +16,15 @@ cp config/example.properties config/local.properties
 ## Запуск
 
 ```
-./gradlew up          # схема БД, администратор, деплой и запуск WildFly
-./gradlew createAdmin # создать администратора без запуска сервера
+./gradlew up          # деплой
 ./gradlew deploy      # передеплоить после изменений
 ./gradlew stopServer  # остановить сервер
 ```
 
-После запуска откройте `http://localhost:8080/lab1/`. Для импорта загрузите YAML-файл через интерфейс.
-В Windows используйте `gradlew.bat` вместо `./gradlew`.
+После запуска откройте `http://localhost:8080/lab1/`. 
 
 При первом `up` Gradle создает администратора с логином `admin` и паролем
 `admin12345`, если не заданы другие значения в `config/local.properties`.
-При повторном запуске существующая учетная запись не меняется: пароль не
-сбрасывается и второй администратор не создается. Если логин уже занят обычным
-пользователем, запуск остановится с ошибкой. Для доступного извне сервера
-измените начальный пароль в локальном конфиге до первого запуска.
 
 ## Ограничения ЛР2 и JMeter
 
@@ -48,8 +42,8 @@ jmeter -n -t jmeter/lab2.jmx -l jmeter/results.jtl
 ## helios
 
 ```
-./gradlew createAdmin -Pprofile=helios # также создаёт таблицы
-./gradlew seedDb -Pprofile=helios      # тестовые данные, по желанию
+./gradlew createAdmin -Pprofile=helios
+./gradlew seedDb -Pprofile=helios      # тестовые данные
 ./gradlew war jdbcDriver -Pprofile=helios
 ```
 
