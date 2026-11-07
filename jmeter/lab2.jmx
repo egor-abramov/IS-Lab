@@ -40,6 +40,12 @@
           <stringProp name="parameters">unique</stringProp>
         </JSR223Sampler>
         <hashTree/>
+        <JSR223Sampler guiclass="TestBeanGUI" testclass="JSR223Sampler" testname="two users update and delete same object" enabled="true">
+          <stringProp name="scriptLanguage">groovy</stringProp>
+          <stringProp name="filename">jmeter/lab2.groovy</stringProp>
+          <stringProp name="parameters">foreign_edit_delete</stringProp>
+        </JSR223Sampler>
+        <hashTree/>
         <JSR223Sampler guiclass="TestBeanGUI" testclass="JSR223Sampler" testname="simultaneous update and delete" enabled="true">
           <stringProp name="scriptLanguage">groovy</stringProp>
           <stringProp name="filename">jmeter/lab2.groovy</stringProp>

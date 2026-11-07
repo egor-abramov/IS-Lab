@@ -46,6 +46,7 @@ try {
         props.put('lab2.run', run)
         props.put('lab2.y', ((int) (System.currentTimeMillis() % 1000000000)).toString())
         props.put('lab2.race.barrier', new CyclicBarrier(2))
+        props.put('lab2.foreign.barrier', new CyclicBarrier(2))
         props.put('lab2.edit.barrier', new CyclicBarrier(2))
         props.put('lab2.import.barrier', new CyclicBarrier(2))
         (0..1).each { i ->
@@ -76,6 +77,16 @@ try {
                 props.get('lab2.token.' + thread))
         if (!(response.status in [201, 409])) throw new AssertionError("HTTP ${response.status}: ${response.body}")
         props.put('lab2.unique.' + thread, response.status.toString())
+    } else if (phase == 'foreign_edit_delete') {
+        int thread = ctx.getThreadNum()
+        props.get('lab2.foreign.barrier').await(15, TimeUnit.SECONDS)
+        def response = thread == 0
+                ? sendJson('PUT', '/organizations/' + props.get('lab2.common'),
+                    organization(props.get('lab2.run') + '_access_updated', props.get('lab2.coordinates.2') as long,
+                            props.get('lab2.address.0') as long), props.get('lab2.token.0'))
+                : request('DELETE', '/organizations/' + props.get('lab2.common'), null, props.get('lab2.token.1'))
+        requireStatus(response, thread == 0 ? 200 : 404)
+        props.put('lab2.foreign.' + thread, response.status.toString())
     } else if (phase == 'edit_delete') {
         int thread = ctx.getThreadNum()
         props.get('lab2.edit.barrier').await(15, TimeUnit.SECONDS)
@@ -121,6 +132,9 @@ try {
         String token = props.get('lab2.token.0')
         def statuses = [props.get('lab2.unique.0'), props.get('lab2.unique.1')].sort()
         if (statuses != ['201', '409']) throw new AssertionError('Уникальность: ' + statuses)
+        if (props.get('lab2.token.0') == props.get('lab2.token.1')
+                || props.get('lab2.foreign.0') != '200' || props.get('lab2.foreign.1') != '404')
+            throw new AssertionError('Два пользователя: ' + [props.get('lab2.foreign.0'), props.get('lab2.foreign.1')])
         if (props.get('lab2.edit.1') != '204' || !(props.get('lab2.edit.0') in ['200', '404']))
             throw new AssertionError('Обновление/удаление: ' + [props.get('lab2.edit.0'), props.get('lab2.edit.1')])
         requireStatus(request('GET', '/organizations/' + props.get('lab2.common'), null, token), 404)
@@ -137,7 +151,7 @@ try {
         if (successfulHistory.count { it.status == 'SUCCESS' && it.addedCount == 2 } != 1
                 || failedHistory.count { it.status == 'FAILED' && it.addedCount == null } != 1)
             throw new AssertionError('История импорта: ' + [successfulHistory, failedHistory])
-        SampleResult.setResponseMessage('create=201/409; update=' + props.get('lab2.edit.0') +
+        SampleResult.setResponseMessage('create=201/409; owner/foreign=200/404; update=' + props.get('lab2.edit.0') +
                 '; delete=204; import=201/409; итог: 1 уникальная организация, 2 импортированы, 0 из ошибочного импорта')
     }
     SampleResult.setResponseCode('200')
