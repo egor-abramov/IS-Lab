@@ -4,6 +4,7 @@ import core.model.Organization;
 import core.model.OrganizationSource;
 import core.model.OrganizationType;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.persistence.LockModeType;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Order;
@@ -18,6 +19,27 @@ public class OrganizationRepository extends BaseRepository {
 
     public Organization findById(long id) {
         return findById(Organization.class, id);
+    }
+
+    public Organization findByIdForUpdate(long id) {
+        Organization organization = em.find(Organization.class, id, LockModeType.PESSIMISTIC_WRITE);
+        return organization != null && currentUser.canRead(organization) ? organization : null;
+    }
+
+    public void lockUniquenessCheck() {
+        em.createNativeQuery("select pg_advisory_xact_lock(3171, 2)").getSingleResult();
+    }
+
+    public List<Organization> findAllForUniqueness() {
+        return em.createQuery("select o from Organization o", Organization.class).getResultList();
+    }
+
+    public boolean coordinatesReplacementConflicts(long oldId, long replacementId) {
+        Long oldCount = em.createQuery("select count(o) from Organization o where o.coordinates.id = :id", Long.class)
+                .setParameter("id", oldId).getSingleResult();
+        Long newCount = em.createQuery("select count(o) from Organization o where o.coordinates.id = :id", Long.class)
+                .setParameter("id", replacementId).getSingleResult();
+        return oldCount > 0 && newCount > 0;
     }
 
     public boolean delete(long id) {

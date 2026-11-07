@@ -1,0 +1,9 @@
+timeStamp,elapsed,label,responseCode,responseMessage,threadName,dataType,success,failureMessage,bytes,sentBytes,grpThreads,allThreads,URL,Latency,IdleTime,Connect
+1794062416051,2915,setup,200,OK,Prepare user and shared object 1-1,text,true,,0,0,1,1,null,0,0,0
+1794062419506,102,simultaneous create with same name,200,OK,Two concurrent sessions 1-2,text,true,,0,0,2,2,null,0,0,0
+1794062419000,662,simultaneous create with same name,200,OK,Two concurrent sessions 1-1,text,true,,0,0,2,2,null,0,0,0
+1794062419608,70,simultaneous update and delete,200,OK,Two concurrent sessions 1-2,text,true,,0,0,2,2,null,0,0,0
+1794062419662,18,simultaneous update and delete,200,OK,Two concurrent sessions 1-1,text,true,,0,0,2,2,null,0,0,0
+1794062419680,103,simultaneous valid and invalid import,200,OK,Two concurrent sessions 1-1,text,true,,0,0,2,2,null,0,0,0
+1794062419678,137,simultaneous valid and invalid import,200,OK,Two concurrent sessions 1-2,text,true,,0,0,1,1,null,0,0,0
+1794062419817,92,verify,200,"create=201/409; update=404; delete=204; import=201/409; итог: 1 уникальная организация, 2 импортированы, 0 из ошибочного импорта",Verify database through API 1-1,text,true,,0,0,1,1,null,0,0,0

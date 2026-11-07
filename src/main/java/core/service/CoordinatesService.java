@@ -5,6 +5,8 @@ import core.dto.CoordinatesRequest;
 import core.dto.ItemsDto;
 import core.model.Coordinates;
 import core.repository.CoordinatesRepository;
+import core.repository.OrganizationRepository;
+import core.service.exception.DataConflictException;
 import core.service.exception.EntityInUseException;
 import core.service.exception.InvalidDataException;
 import core.service.exception.NotFoundException;
@@ -19,6 +21,8 @@ import jakarta.transaction.Transactional;
 public class CoordinatesService {
     @Inject
     CoordinatesRepository repository;
+    @Inject
+    OrganizationRepository organizations;
     @Inject
     DataValidator validator;
     @Inject
@@ -42,6 +46,7 @@ public class CoordinatesService {
     }
 
     public void delete(long id, Long replacementId) {
+        organizations.lockUniquenessCheck();
         if (repository.findById(id) == null) {
             throw new NotFoundException("координаты", id);
         }
@@ -58,6 +63,9 @@ public class CoordinatesService {
         }
         if (usages > 0) {
             currentUser.requireOwnReference(repository.findById(replacementId));
+            if (organizations.coordinatesReplacementConflicts(id, replacementId)) {
+                throw new DataConflictException("замена координат нарушает уникальность организаций");
+            }
         }
         repository.deleteWithReplace(id, usages > 0 ? replacementId : null);
         notifier.broadcast("coordinates");

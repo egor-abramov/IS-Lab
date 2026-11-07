@@ -11,6 +11,7 @@ import core.repository.AddressRepository;
 import core.repository.CoordinatesRepository;
 import core.repository.OrganizationRepository;
 import core.service.exception.InvalidDataException;
+import core.service.exception.DataConflictException;
 import core.service.exception.NotFoundException;
 import core.ws.UpdateNotifier;
 import core.security.CurrentUser;
@@ -21,6 +22,7 @@ import jakarta.transaction.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 
 @ApplicationScoped
@@ -73,10 +75,12 @@ public class OrganizationService {
     }
 
     public OrganizationDto update(long id, OrganizationRequest request) {
-        return save(find(id), request);
+        repository.lockUniquenessCheck();
+        return save(findForUpdate(id), request);
     }
 
     public void delete(long id) {
+        findForUpdate(id);
         if (!repository.delete(id)) {
             throw new NotFoundException("организация", id);
         }
@@ -94,6 +98,8 @@ public class OrganizationService {
             prepareAddress(o.getOfficialAddress());
             prepareAddress(o.getPostalAddress());
         }
+        repository.lockUniquenessCheck();
+        checkUniqueness(organizations);
         repository.load(organizations);
         notifier.broadcast("organizations");
     }
@@ -123,6 +129,7 @@ public class OrganizationService {
         if (o.getId() != null) {
             currentUser.requireWrite(o);
         }
+        repository.lockUniquenessCheck();
         List<String> errors = new ArrayList<>();
 
         o.setCoordinates(findCoordinates(r.coordinatesId(), errors));
@@ -142,6 +149,7 @@ public class OrganizationService {
         o.setSource(OrganizationSource.USER);
 
         validator.check(o);
+        checkUniqueness(List.of(o));
         Organization saved = repository.save(o);
         notifier.broadcast("organizations");
         return OrganizationDto.from(saved);
@@ -153,6 +161,42 @@ public class OrganizationService {
             throw new NotFoundException("организация", id);
         }
         return o;
+    }
+
+    private Organization findForUpdate(long id) {
+        Organization organization = repository.findByIdForUpdate(id);
+        if (organization == null) {
+            throw new NotFoundException("организация", id);
+        }
+        return organization;
+    }
+
+    private void checkUniqueness(List<Organization> candidates) {
+        List<Organization> checked = new ArrayList<>(repository.findAllForUniqueness());
+        for (Organization candidate : candidates) {
+            for (Organization existing : checked) {
+                if (candidate == existing || candidate.getId() != null && candidate.getId().equals(existing.getId())) {
+                    continue;
+                }
+                if (normalized(candidate.getName()).equals(normalized(existing.getName()))) {
+                    throw new DataConflictException("организация с таким name уже существует");
+                }
+                if (candidate.getFullName() != null && !candidate.getFullName().isBlank()
+                        && existing.getFullName() != null && !existing.getFullName().isBlank()
+                        && normalized(candidate.getFullName()).equals(normalized(existing.getFullName()))) {
+                    throw new DataConflictException("организация с таким fullName уже существует");
+                }
+                if (Float.compare(candidate.getCoordinates().getX(), existing.getCoordinates().getX()) == 0
+                        && candidate.getCoordinates().getY() == existing.getCoordinates().getY()) {
+                    throw new DataConflictException("организация с такими coordinates уже существует");
+                }
+            }
+            checked.add(candidate);
+        }
+    }
+
+    private String normalized(String value) {
+        return value.trim().toLowerCase(Locale.ROOT);
     }
 
     private Coordinates findCoordinates(Long id, List<String> errors) {
