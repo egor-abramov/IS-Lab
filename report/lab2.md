@@ -9,27 +9,15 @@
 
 ## 2. UML-диаграммы и изменения
 
-```mermaid
-classDiagram
-    AppUser "1" --> "*" Organization : владелец
-    AppUser "1" --> "*" ImportOperation : запускает
-    Organization --> Coordinates
-    Organization --> Address : почтовый и официальный
-    Address --> Location
-    OrganizationService --> OrganizationRepository
-    OrganizationImportService --> OrganizationService
-    OrganizationImportService --> ImportHistoryService
-```
+Архитектура приложения:
 
-```mermaid
-flowchart LR
-    web[Веб-интерфейс] --> handler[core.handler]
-    handler --> service[core.service]
-    service --> repository[core.repository]
-    repository --> db[(PostgreSQL)]
-    service --> model[core.model]
-    handler --> security[core.security]
-```
+![Диаграмма пакетов и сервисов ЛР2](img/diagram.png)
+
+Модель данных:
+
+![Диаграмма классов модели ЛР2](img/domain.png)
+
+Обе схемы построены из [`report/uml/diagram.puml`](uml/diagram.puml).
 
 В ветке `lab-2` добавлены YAML-импорт списка организаций с вложенными объектами в одной записи и откатом всей операции при ошибке, история импортов со статусом и числом добавленных объектов, интерфейсы загрузки и истории. Добавлены регистрация, вход по JWT, роли, владельцы данных и ограничения доступа. Схема и функции PostgreSQL обновлены для владельцев и истории. Сервисный слой теперь проверяет уникальность `name`, непустого `fullName` и пары координат `(x, y)` у организаций. Строки сравниваются без учета регистра и крайних пробелов. Эти три правила не добавлены в схему БД.
 

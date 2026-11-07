@@ -46,6 +46,10 @@ config/*.properties
 ### WildFly downloaded by setupServer ###
 .wildfly/
 
+### Local lab notes ###
+/GUIDE.md
+/task.md
+
 ### LaTeX build artifacts ###
 report/*.aux
 report/*.log

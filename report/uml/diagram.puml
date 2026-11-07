@@ -1,0 +1,113 @@
+@startuml diagram
+!pragma layout smetana
+skinparam dpi 170
+skinparam defaultFontName Arial
+skinparam shadowing false
+skinparam packageStyle rectangle
+skinparam classAttributeIconSize 0
+top to bottom direction
+set namespaceSeparator none
+
+package "core.handler" {
+    class OrganizationHandler
+    class ImportHistoryHandler
+    class AuthHandler
+}
+
+package "core.service" {
+    class OrganizationImportService {
+        +load(yaml)
+        -parse(yaml)
+    }
+    class OrganizationService {
+        +create(request)
+        +update(id, request)
+        +delete(id)
+        +load(organizations)
+        -checkUniqueness(candidates)
+    }
+    class ImportHistoryService {
+        +start()
+        +finish(id, status, count)
+        +history()
+    }
+    class AuthService
+}
+
+package "core.repository" {
+    class OrganizationRepository {
+        +findByIdForUpdate(id)
+        +lockUniquenessCheck()
+        +findAllForUniqueness()
+    }
+    class ImportOperationRepository
+    class UserRepository
+}
+
+package "core.security" {
+    class AuthFilter
+    class CurrentUser
+    class JwtService
+}
+
+OrganizationHandler --> OrganizationImportService
+OrganizationHandler --> OrganizationService
+ImportHistoryHandler --> ImportHistoryService
+AuthHandler --> AuthService
+OrganizationImportService --> OrganizationService : atomic import
+OrganizationImportService --> ImportHistoryService : status
+OrganizationService --> OrganizationRepository : uniqueness and row locks
+ImportHistoryService --> ImportOperationRepository
+AuthService --> UserRepository
+AuthFilter --> CurrentUser
+AuthFilter --> JwtService
+@enduml
+
+@startuml domain
+!pragma layout smetana
+skinparam dpi 170
+skinparam defaultFontName Arial
+skinparam shadowing false
+skinparam classAttributeIconSize 0
+left to right direction
+
+class AppUser {
+    +id: Long
+    +login: String
+    +role: Role
+}
+class ImportOperation {
+    +id: Long
+    +status: ImportStatus
+    +addedCount: Integer
+}
+class Organization {
+    +id: Long
+    +name: String
+    +fullName: String
+    +source: OrganizationSource
+    +ownerId: Long
+}
+class Coordinates {
+    +x: float
+    +y: int
+}
+class Address {
+    +street: String
+}
+class Location {
+    +name: String
+}
+
+AppUser "1" <-- "*" ImportOperation : starts
+AppUser "1" <-- "*" Organization : owns
+Organization "*" --> "1" Coordinates
+Organization "*" --> "1" Address : postal
+Organization "*" --> "0..1" Address : official
+Address "*" --> "0..1" Location : town
+
+note bottom of Organization
+  Business uniqueness:
+  name, nonempty fullName, (coordinates.x, coordinates.y)
+end note
+@enduml
