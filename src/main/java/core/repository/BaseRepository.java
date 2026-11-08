@@ -51,6 +51,11 @@ public abstract class BaseRepository {
         return saved;
     }
 
+    public void useSerializableIsolation() {
+        em.createNativeQuery("SET TRANSACTION ISOLATION LEVEL SERIALIZABLE")
+                .executeUpdate();
+    }
+
     protected <T extends OwnedEntity> boolean delete(Class<T> type, long id) {
         T entity = findById(type, id);
         if (entity == null) {
@@ -84,7 +89,7 @@ public abstract class BaseRepository {
         try {
             em.createQuery(update).executeUpdate();
         } catch (PersistenceException e) {
-            throw new DataConflictException("данные нарушают ограничения базы данных");
+            throw new DataConflictException("данные нарушают ограничения базы данных", e);
         }
     }
 
@@ -92,7 +97,7 @@ public abstract class BaseRepository {
         try {
             em.flush();
         } catch (PersistenceException e) {
-            throw new DataConflictException("данные нарушают ограничения базы данных");
+            throw new DataConflictException("данные нарушают ограничения базы данных", e);
         }
     }
 }

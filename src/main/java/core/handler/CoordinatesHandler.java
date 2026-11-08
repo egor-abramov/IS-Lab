@@ -4,6 +4,7 @@ import core.dto.CoordinatesDto;
 import core.dto.CoordinatesRequest;
 import core.dto.ItemsDto;
 import core.service.CoordinatesService;
+import core.service.SerializationRetry;
 import jakarta.enterprise.context.RequestScoped;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
@@ -17,6 +18,8 @@ import jakarta.ws.rs.core.Response;
 public class CoordinatesHandler {
     @Inject
     CoordinatesService service;
+    @Inject
+    SerializationRetry retry;
 
     @GET
     public ItemsDto<CoordinatesDto> list() {
@@ -31,7 +34,10 @@ public class CoordinatesHandler {
     @DELETE
     @Path("/{id}")
     public Response delete(@PathParam("id") long id, @QueryParam("replaceWith") Long replaceWith) {
-        service.delete(id, replaceWith);
+        retry.run(() -> {
+            service.delete(id, replaceWith);
+            return null;
+        });
         return Response.noContent().build();
     }
 }

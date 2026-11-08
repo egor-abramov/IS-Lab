@@ -24,12 +24,18 @@ public class OrganizationImportService {
     OrganizationService organizations;
     @Inject
     ImportHistoryService history;
+    @Inject
+    SerializationRetry retry;
 
     public void load(String body) {
         long id = history.start();
         try {
             List<Organization> items = parse(body);
-            organizations.load(items);
+
+            retry.run(() -> {
+                organizations.load(items);
+                return null;
+            });
             history.finish(id, ImportStatus.SUCCESS, items.size());
         } catch (Exception e) {
             history.finish(id, ImportStatus.FAILED, null);

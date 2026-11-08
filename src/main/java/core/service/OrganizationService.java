@@ -71,10 +71,12 @@ public class OrganizationService {
     }
 
     public OrganizationDto create(OrganizationRequest request) {
+        repository.useSerializableIsolation();
         return save(new Organization(), request);
     }
 
     public OrganizationDto update(long id, OrganizationRequest request) {
+        repository.useSerializableIsolation();
         return save(findForUpdate(id), request);
     }
 
@@ -87,6 +89,7 @@ public class OrganizationService {
     }
 
     public void load(List<Organization> organizations) {
+        repository.useSerializableIsolation();
         for (Organization o: organizations) {
             validator.check(o);
             o.setSource(OrganizationSource.FILE);

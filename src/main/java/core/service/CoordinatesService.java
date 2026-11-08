@@ -46,6 +46,8 @@ public class CoordinatesService {
     }
 
     public void delete(long id, Long replacementId) {
+        repository.useSerializableIsolation();
+
         if (repository.findById(id) == null) {
             throw new NotFoundException("координаты", id);
         }

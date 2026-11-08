@@ -7,6 +7,7 @@ import core.model.Organization;
 import core.model.OrganizationSource;
 import core.service.OrganizationService;
 import core.service.OrganizationImportService;
+import core.service.SerializationRetry;
 import core.service.exception.InvalidDataException;
 import jakarta.enterprise.context.RequestScoped;
 import jakarta.inject.Inject;
@@ -25,6 +26,8 @@ public class OrganizationHandler {
     OrganizationService service;
     @Inject
     OrganizationImportService imports;
+    @Inject
+    SerializationRetry retry;
 
     @GET
     public OrganizationPageDto list(@QueryParam("page") @DefaultValue("0") int page,
@@ -44,13 +47,14 @@ public class OrganizationHandler {
 
     @POST
     public Response create(OrganizationRequest request) {
-        return Response.status(Response.Status.CREATED).entity(service.create(request)).build();
+        OrganizationDto dto = retry.run(() -> service.create(request));
+        return Response.status(Response.Status.CREATED).entity(dto).build();
     }
 
     @PUT
     @Path("/{id}")
     public OrganizationDto update(@PathParam("id") long id, OrganizationRequest request) {
-        return service.update(id, request);
+        return retry.run(() -> service.update(id, request));
     }
 
     @DELETE
