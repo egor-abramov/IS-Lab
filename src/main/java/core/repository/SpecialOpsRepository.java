@@ -2,47 +2,41 @@ package core.repository;
 
 import core.model.Organization;
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.persistence.ParameterMode;
 
 import java.util.List;
 
 @ApplicationScoped
 public class SpecialOpsRepository extends BaseRepository {
+    private Long ownerId() {
+        return currentUser.isAdmin() ? null : currentUser.id();
+    }
 
     public long countFullNameGreater(String fullName) {
-        return firstColumn(em.createStoredProcedureQuery("count_full_name_greater")
-                .registerStoredProcedureParameter(1, String.class, ParameterMode.IN)
-                .setParameter(1, fullName)
-                .getSingleResult()).longValue();
+        return ((Number) em.createNativeQuery("select count_full_name_greater(?1, cast(?2 as bigint))")
+                .setParameter(1, fullName).setParameter(2, ownerId()).getSingleResult()).longValue();
     }
 
     @SuppressWarnings("unchecked")
     public List<Organization> findNameContains(String sub) {
-        return em.createStoredProcedureQuery("find_name_contains", Organization.class)
-                .registerStoredProcedureParameter(1, String.class, ParameterMode.IN)
-                .setParameter(1, sub.toLowerCase())
-                .getResultList();
+        return em.createNativeQuery("select * from find_name_contains(?1, cast(?2 as bigint))", Organization.class)
+                .setParameter(1, sub).setParameter(2, ownerId()).getResultList();
     }
 
     @SuppressWarnings("unchecked")
     public List<Long> uniqueRatings() {
-        return ((List<Object>) em.createStoredProcedureQuery("unique_ratings")
-                .getResultList())
-                .stream().map(row -> firstColumn(row).longValue()).toList();
+        List<Number> ratings = em.createNativeQuery("select * from unique_ratings(cast(?1 as bigint))")
+                .setParameter(1, ownerId()).getResultList();
+        return ratings.stream().map(Number::longValue).toList();
     }
 
     @SuppressWarnings("unchecked")
     public List<Organization> top5ByTurnover() {
-        return em.createStoredProcedureQuery("top5_by_turnover", Organization.class)
-                .getResultList();
+        return em.createNativeQuery("select * from top5_by_turnover(cast(?1 as bigint))", Organization.class)
+                .setParameter(1, ownerId()).getResultList();
     }
 
     public double avgEmployeesTop10() {
-        return firstColumn(em.createStoredProcedureQuery("avg_employees_top10")
-                .getSingleResult()).doubleValue();
-    }
-
-    private Number firstColumn(Object row) {
-        return (Number) ((Object[]) row)[0];
+        return ((Number) em.createNativeQuery("select avg_employees_top10(cast(?1 as bigint))")
+                .setParameter(1, ownerId()).getSingleResult()).doubleValue();
     }
 }

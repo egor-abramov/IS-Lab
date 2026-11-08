@@ -8,6 +8,15 @@
     --danger: #dc2626;
 }
 
+[hidden] {
+    display: none !important;
+}
+
+#auth-panel {
+    max-width: 480px;
+    margin: 64px auto;
+}
+
 * {
     box-sizing: border-box;
 }
@@ -175,7 +184,7 @@ td button {
     margin-top: 10px;
 }
 
-#message:empty, #org-errors:empty {
+#message:empty, #org-errors:empty, #auth-error:empty {
     display: none;
 }
 

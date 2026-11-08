@@ -5,7 +5,14 @@ let editingId = null;
 let viewedId = null;
 
 function formatDate(value) {
-    return value ? value.replace('T', ' ').substring(0, 19) : '';
+    if (!value) return '';
+    if (Array.isArray(value)) {
+        const [year, month, day, hour = 0, minute = 0, second = 0] = value;
+        const twoDigits = number => String(number).padStart(2, '0');
+        return year + '-' + twoDigits(month) + '-' + twoDigits(day) + ' '
+            + twoDigits(hour) + ':' + twoDigits(minute) + ':' + twoDigits(second);
+    }
+    return String(value).replace('T', ' ').substring(0, 19);
 }
 
 function orgRow(o) {
@@ -22,8 +29,10 @@ function orgRow(o) {
         + '<td>' + esc(o.fullName) + '</td>'
         + '<td>' + esc(o.type) + '</td>'
         + '<td>' + esc(addressText(o.postalAddress)) + '</td>'
-        + '<td><button onclick="openOrgDialog(' + o.id + ')">Изменить</button>'
-        + '<button class="danger" onclick="deleteOrg(' + o.id + ')">Удалить</button></td>'
+        + '<td>' + esc(o.ownerId) + '</td>'
+        + '<td><button onclick="viewOrg(' + o.id + ')">Просмотр</button>'
+        + (canEdit(o) ? '<button onclick="openOrgDialog(' + o.id + ')">Изменить</button>'
+        + '<button class="danger" onclick="deleteOrg(' + o.id + ')">Удалить</button>' : '') + '</td>'
         + '</tr>';
 }
 
@@ -161,8 +170,10 @@ async function viewOrg(id) {
     try {
         const o = await api('GET', '/organizations/' + id);
         viewedId = o.id;
+        document.getElementById('edit-viewed').hidden = !canEdit(o);
         const rows = [
             ['id', o.id],
+            ['ownerId', o.ownerId],
             ['name', o.name],
             ['coordinates', coordText(o.coordinates)],
             ['creationDate', formatDate(o.creationDate)],

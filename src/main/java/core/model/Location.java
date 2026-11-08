@@ -2,10 +2,17 @@ package core.model;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
+import lombok.Getter;
+import lombok.Setter;
 
+@Getter
+@Setter
 @Entity
 @Table(name = "location")
-public class Location {
+public class Location implements OwnedEntity {
+    @Column(name = "owner_id")
+    private Long ownerId;
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -20,13 +27,4 @@ public class Location {
     @NotNull(message = "name обязательное поле")
     @Column(nullable = false)
     private String name;
-
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
-    public long getX() { return x; }
-    public void setX(long x) { this.x = x; }
-    public Float getY() { return y; }
-    public void setY(Float y) { this.y = y; }
-    public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
 }

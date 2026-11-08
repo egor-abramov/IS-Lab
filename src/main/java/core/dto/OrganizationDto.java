@@ -15,7 +15,8 @@ public record OrganizationDto(Long id,
                               Long rating,
                               String fullName,
                               OrganizationType type,
-                              AddressDto postalAddress) {
+                              AddressDto postalAddress,
+                              Long ownerId) {
 
     public static OrganizationDto from(Organization o) {
         return new OrganizationDto(
@@ -29,6 +30,7 @@ public record OrganizationDto(Long id,
                 o.getRating(),
                 o.getFullName(),
                 o.getType(),
-                AddressDto.from(o.getPostalAddress()));
+                AddressDto.from(o.getPostalAddress()),
+                o.getOwnerId());
     }
 }

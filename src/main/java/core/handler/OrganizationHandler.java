@@ -3,12 +3,19 @@ package core.handler;
 import core.dto.OrganizationDto;
 import core.dto.OrganizationPageDto;
 import core.dto.OrganizationRequest;
+import core.model.Organization;
+import core.model.OrganizationSource;
 import core.service.OrganizationService;
+import core.service.OrganizationImportService;
+import core.service.SerializationRetry;
+import core.service.exception.InvalidDataException;
 import jakarta.enterprise.context.RequestScoped;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+
+import java.util.List;
 
 @Path("/organizations")
 @RequestScoped
@@ -17,6 +24,10 @@ import jakarta.ws.rs.core.Response;
 public class OrganizationHandler {
     @Inject
     OrganizationService service;
+    @Inject
+    OrganizationImportService imports;
+    @Inject
+    SerializationRetry retry;
 
     @GET
     public OrganizationPageDto list(@QueryParam("page") @DefaultValue("0") int page,
@@ -36,13 +47,14 @@ public class OrganizationHandler {
 
     @POST
     public Response create(OrganizationRequest request) {
-        return Response.status(Response.Status.CREATED).entity(service.create(request)).build();
+        OrganizationDto dto = retry.run(() -> service.create(request));
+        return Response.status(Response.Status.CREATED).entity(dto).build();
     }
 
     @PUT
     @Path("/{id}")
     public OrganizationDto update(@PathParam("id") long id, OrganizationRequest request) {
-        return service.update(id, request);
+        return retry.run(() -> service.update(id, request));
     }
 
     @DELETE
@@ -50,5 +62,21 @@ public class OrganizationHandler {
     public Response delete(@PathParam("id") long id) {
         service.delete(id);
         return Response.noContent().build();
+    }
+
+    @POST
+    @Path("/list")
+    @Consumes("application/yaml")
+    public Response load(String body) {
+        imports.load(body);
+        return Response.status(Response.Status.CREATED).build();
+    }
+
+    @GET
+    @Path("/list")
+    public OrganizationPageDto loaded(@QueryParam("page") @DefaultValue("0") int page,
+                           @QueryParam("size") @DefaultValue("5") int size
+                           ) {
+        return service.list(page, size, "source", OrganizationSource.FILE.toString(), null, null);
     }
 }

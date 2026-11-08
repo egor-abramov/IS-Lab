@@ -1,0 +1,47 @@
+# Тестовые данные сгенерированы
+
+- name: Lab2 Aurora Systems
+  fullName: Aurora Systems Limited
+  coordinates:
+    x: 151.25
+    y: 3811
+  officialAddress:
+    street: Kronverksky 49
+    town:
+      x: 30
+      y: 59.94
+      name: Saint Petersburg
+  postalAddress:
+    street: Nevsky 12
+  annualTurnover: 1250000.0
+  employeesCount: 42
+  rating: 8
+  type: PRIVATE_LIMITED_COMPANY
+
+- name: Lab2 Meridian Trade
+  fullName: Meridian Trade Company
+  coordinates:
+    x: 152.5
+    y: 3812
+  postalAddress:
+    street: Tverskaya 7
+    town:
+      x: 37
+      y: 55.75
+      name: Moscow
+  annualTurnover: 870000.0
+  employeesCount: 28
+  rating: 6
+  type: COMMERCIAL
+
+- name: Lab2 Vector Trust
+  fullName: Vector Trust Group
+  coordinates:
+    x: 153.75
+    y: 3813
+  postalAddress:
+    street: Baumana 15
+  annualTurnover: 2150000.0
+  employeesCount: 65
+  rating: 9
+  type: TRUST

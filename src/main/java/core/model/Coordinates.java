@@ -2,10 +2,17 @@ package core.model;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.DecimalMin;
+import lombok.Getter;
+import lombok.Setter;
 
+@Getter
+@Setter
 @Entity
 @Table(name = "coordinates")
-public class Coordinates {
+public class Coordinates implements OwnedEntity {
+    @Column(name = "owner_id")
+    private Long ownerId;
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -16,11 +23,4 @@ public class Coordinates {
 
     @Column(nullable = false)
     private int y;
-
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
-    public float getX() { return x; }
-    public void setX(float x) { this.x = x; }
-    public int getY() { return y; }
-    public void setY(int y) { this.y = y; }
 }

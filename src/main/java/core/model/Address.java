@@ -1,11 +1,19 @@
 package core.model;
 
 import jakarta.persistence.*;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
+import lombok.Getter;
+import lombok.Setter;
 
+@Getter
+@Setter
 @Entity
 @Table(name = "address")
-public class Address {
+public class Address implements OwnedEntity {
+    @Column(name = "owner_id")
+    private Long ownerId;
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -14,14 +22,8 @@ public class Address {
     @Column(nullable = false)
     private String street;
 
-    @ManyToOne
+    @ManyToOne(cascade = CascadeType.PERSIST)
     @JoinColumn(name = "town_id")
+    @Valid
     private Location town;
-
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
-    public String getStreet() { return street; }
-    public void setStreet(String street) { this.street = street; }
-    public Location getTown() { return town; }
-    public void setTown(Location town) { this.town = town; }
 }

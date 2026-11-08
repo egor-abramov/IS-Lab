@@ -1,7 +1,8 @@
-# Лабораторная работа 1
+# ИС Лаб. 2
 
-* Студент: Абрамов Егор Денисович
-* Группа: З3319
+**Студент**: Абрамов Егор Денисович
+
+**Группа**: P3319
 
 ## Настройка
 
@@ -9,24 +10,55 @@
 cp config/example.properties config/local.properties
 ```
 
-Вписать данные БД в `config/local.properties`, путь к WildFly -- в `gradle.properties`.
+Вписать данные PostgreSQL в `config/local.properties`, путь к WildFly в `gradle.properties`.
+Там же можно изменить логин и пароль начального администратора (`admin.login`, `admin.password`).
 
 ## Запуск
 
 ```
-./gradlew up          # таблицы в БД, деплой, запуск WildFly
+./gradlew up          # деплой
 ./gradlew deploy      # передеплоить после изменений
 ./gradlew stopServer  # остановить сервер
-./gradlew seedDb      # добавить 10 тестовых организаций
 ```
+
+После запуска откройте `http://localhost:8080/lab1/`. 
+
+При первом `up` Gradle создает администратора с логином `admin` и паролем
+`admin12345`, если не заданы другие значения в `config/local.properties`.
+
+## Ограничения ЛР2 и JMeter
+
+У организаций должны быть уникальны `name`, непустое `fullName` и пара координат
+`(x, y)`. Проверка выполняется сервисом при создании, изменении и импорте. Конфликт возвращает `409`.
+
+Для проверки параллельных запросов запустите приложение и Apache JMeter:
+
+```text
+jmeter -n -t jmeter/lab2.jmx -l jmeter/results.jtl
+```
+
+Сценарий создает двух пользователей и тестовые данные. Итоги последнего прогона приведены в `report/lab2.md`.
 
 ## helios
 
 ```
-psql -h pg -d studs -f sql/schema.sql -f sql/functions.sql
-psql -h pg -d studs -f sql/seed.sql   # тестовые данные, по желанию
+./gradlew createAdmin -Pprofile=helios
+./gradlew seedDb -Pprofile=helios      # тестовые данные
 ./gradlew war jdbcDriver -Pprofile=helios
 ```
 
-`build/libs/lab1.war` и `build/libs/postgresql.jar` положить в `standalone/deployments` WildFly.
-Datasource `java:jboss/datasources/lab1` описан в `WEB-INF/lab1-ds.xml` внутри war, драйвер берется из `postgresql.jar`.
+Перед запуском положить `build/libs/lab1.war` и `build/libs/postgresql.jar` в `standalone/deployments` WildFly.
+
+## Пользователи и доступ
+
+При открытии приложения доступны регистрация и вход по логину и паролю.
+Регистрация всегда создаёт пользователя с ролью `USER`. Пользователь видит и
+изменяет только свои организации, адреса, координаты и локации. Администратор видит все данные и список пользователей, но изменяет и удаляет только
+свои объекты. Связывать объекты разных владельцев нельзя. 
+
+`./gradlew up` запускает `setupDb` и `createAdmin`: первая задача создаёт
+`app_user`, добавляет `owner_id` в четыре таблицы и обновляет функции БД,
+вторая добавляет начального администратора.
+Повторный запуск сохраняет данные. Старые и тестовые записи без владельца доступны
+только администратору для чтения. Новым записям, включая YAML-импорт, владелец
+назначается сервером.

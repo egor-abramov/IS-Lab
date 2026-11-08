@@ -1,14 +1,22 @@
-async function api(method, url, body) {
+async function api(method, url, body, contentType = 'application/json') {
     const options = {method: method, headers: {}};
+    const token = sessionStorage.getItem('token');
+    if (token) {
+        options.headers.Authorization = 'Bearer ' + token;
+    }
     if (body !== undefined) {
-        options.headers['Content-Type'] = 'application/json';
-        options.body = JSON.stringify(body);
+        options.headers['Content-Type'] = contentType;
+        options.body = contentType === 'application/json' ? JSON.stringify(body) : body;
     }
     let resp;
     try {
         resp = await fetch('api' + url, options);
     } catch (e) {
         throw apiError(0, ['сервер недоступен']);
+    }
+    if (resp.status === 401 && token && !url.startsWith('/auth/login')) {
+        logout();
+        throw apiError(401, ['сеанс завершён, войдите снова']);
     }
     if (resp.status === 204) {
         return null;

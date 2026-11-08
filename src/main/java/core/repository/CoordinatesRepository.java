@@ -14,7 +14,7 @@ public class CoordinatesRepository extends BaseRepository {
     }
 
     public Coordinates findById(long id) {
-        return em.find(Coordinates.class, id);
+        return findById(Coordinates.class, id);
     }
 
     public long countUsages(long id) {
