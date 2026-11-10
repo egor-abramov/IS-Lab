@@ -1,11 +1,11 @@
 timeStamp,elapsed,label,responseCode,responseMessage,threadName,dataType,success,failureMessage,bytes,sentBytes,grpThreads,allThreads,URL,Latency,IdleTime,Connect
-1794068026782,4157,setup,200,OK,Prepare user and shared object 1-1,text,true,,0,0,1,1,null,0,0,0
-1794068031500,93,simultaneous create with same name,200,OK,Two concurrent sessions 1-2,text,true,,0,0,2,2,null,0,0,0
-1794068030999,628,simultaneous create with same name,200,OK,Two concurrent sessions 1-1,text,true,,0,0,2,2,null,0,0,0
-1794068031593,57,two users update and delete same object,200,OK,Two concurrent sessions 1-2,text,true,,0,0,2,2,null,0,0,0
-1794068031627,79,two users update and delete same object,200,OK,Two concurrent sessions 1-1,text,true,,0,0,2,2,null,0,0,0
-1794068031707,21,simultaneous update and delete,200,OK,Two concurrent sessions 1-1,text,true,,0,0,2,2,null,0,0,0
-1794068031651,78,simultaneous update and delete,200,OK,Two concurrent sessions 1-2,text,true,,0,0,2,2,null,0,0,0
-1794068031730,71,simultaneous valid and invalid import,200,OK,Two concurrent sessions 1-2,text,true,,0,0,2,2,null,0,0,0
-1794068031728,111,simultaneous valid and invalid import,200,OK,Two concurrent sessions 1-1,text,true,,0,0,1,1,null,0,0,0
-1794068031842,79,verify,200,"create=201/409; owner/foreign=200/404; update=404; delete=204; import=201/409; итог: 1 уникальная организация, 2 импортированы, 0 из ошибочного импорта",Verify database through API 1-1,text,true,,0,0,1,1,null,0,0,0
+1794331759427,4666,setup,200,OK,Prepare user and shared object 1-1,text,true,,0,0,1,1,null,0,0,0
+1794331764148,631,simultaneous create with same name,200,OK,Two concurrent sessions 1-1,text,true,,0,0,2,2,null,0,0,0
+1794331764649,130,simultaneous create with same name,200,OK,Two concurrent sessions 1-2,text,true,,0,0,2,2,null,0,0,0
+1794331764779,17,two users update and delete same object,200,OK,Two concurrent sessions 1-2,text,true,,0,0,2,2,null,0,0,0
+1794331764779,86,two users update and delete same object,200,OK,Two concurrent sessions 1-1,text,true,,0,0,2,2,null,0,0,0
+1794331764797,82,simultaneous update and delete,200,OK,Two concurrent sessions 1-2,text,true,,0,0,2,2,null,0,0,0
+1794331764865,22,simultaneous update and delete,200,OK,Two concurrent sessions 1-1,text,true,,0,0,2,2,null,0,0,0
+1794331764879,110,simultaneous valid and invalid import,200,OK,Two concurrent sessions 1-2,text,true,,0,0,2,2,null,0,0,0
+1794331764888,111,simultaneous valid and invalid import,200,OK,Two concurrent sessions 1-1,text,true,,0,0,1,1,null,0,0,0
+1794331765004,75,verify,200,"create=201/409; owner/foreign=200/404; update=404; delete=204; import=201/409; итог: 1 уникальная организация, 2 импортированы, 0 из ошибочного импорта",Verify database through API 1-1,text,true,,0,0,1,1,null,0,0,0
